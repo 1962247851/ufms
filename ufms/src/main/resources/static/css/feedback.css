@@ -1,0 +1,71 @@
+.label {
+    font-size: 12px;
+    color: #b2b2b2;
+    padding: 0 4px;
+    line-height: 16px;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid #bdbdbd;
+    border-radius: 2px;
+    margin-left: 4px;
+    -webkit-transform: translateY(1px);
+    -ms-transform: translateY(1px);
+    transform: translateY(1px);
+}
+
+.label-good {
+    color: #5FB878;
+    border: 1px solid #5FB878;
+}
+
+.sticky {
+    position: -webkit-sticky; /* Safari */
+    position: sticky;
+    top: 0;
+}
+
+.iconButton {
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.iconButton:hover {
+    color: #009688;
+}
+
+.bottom-toolbar-hover-hide-item {
+    display: none;
+}
+
+.bottom-toolbar-controller:hover .bottom-toolbar-hover-hide-item {
+    display: inline;
+}
+
+/*文字头像*/
+.avatar {
+    display: flex;
+    align-items: center;
+}
+
+/*文字头像*/
+.avatar-container {
+    height: 35px;
+    width: 35px;
+    background: #F2F2F2;
+    border-radius: 50%;
+    line-height: 35px;
+    text-align: center;
+    display: inline-block;
+}
+
+/*文字头像*/
+.avatar-content {
+    /*line-height: 35px;*/
+    /*display: block;*/
+    /*margin-top: 0.25rem;*/
+
+    /*vertical-align: center;*/
+    /*align-self: center;*/
+    font-weight: bold;
+}

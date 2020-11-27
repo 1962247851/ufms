@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>产品名称</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="../../images/favicon.ico">
+    <link rel="stylesheet" href="../../lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../css/feedback.css" media="all">
+    <link rel="stylesheet" href="../../css/themes/default.css" media="all">
+    <link rel="stylesheet" href="../../css/public.css" media="all">
+    <link rel="stylesheet" href="../../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.statidcfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div>
+
+    <!--产品头图-->
+    <div class="layui-row">
+        <img width="100%" src="https://txc.gtimg.com/static/prod_home_banner.fca33db1.jpg" alt="产品头图"/>
+    </div>
+
+    <div class="layui-container">
+        <!--反馈列表-->
+        <div class="layui-row">
+            <div class="layui-col-md9 layui-col-xs9 layui-col-sm9 layui-col-lg9">
+                <div class="layui-tab layui-tab-brief" style="margin-top: 10px" lay-filter="tabFeedback">
+                    <ul class="layui-tab-title">
+                        <li class="layui-this">默认</li>
+                        <li>最新</li>
+                    </ul>
+                    <div class="layui-tab-content">
+                        <div class="layui-tab-item layui-show">
+                            <div class="layui-row">
+                                <ul id="flows"></ul>
+                            </div>
+                        </div>
+                        <div class="layui-tab-item">
+                            <div class="layui-row">
+                                <ul id="flowsNewest"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md3 layui-col-xs3 layui-col-sm3 layui-col-lg3 sticky">
+                <div class="layui-card"
+                     style="display: flex; height: 80px;align-items: center;margin-top: 20px;margin-left: 20px">
+                    <!--新建反馈-->
+                    <a class="layui-btn layui-btn-fluid" style="margin: 20px;float: right"
+                       id="buttonNewFeedback">说两句</a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="../../js/lay-config.js" charset="utf-8"></script>
+<script type="module" src="../../js/my-config.js" charset="utf-8"></script>
+<script>
+    layui.use(['layer', 'element', 'flow', 'util'], function () {
+        let product;
+        let $ = layui.jquery,
+            layer = layui.layer,
+            element = layui.element,
+            util = layui.util,
+            flow = layui.flow;
+
+        //一些事件监听
+        element.on('tab(tabFeedback)', function (data) {
+            console.log(data);
+        });
+
+        $(() => {
+            let productId = window.UTIL.getUrlParam("pid");
+            let userUuid = window.UTIL.getUrlParam("uid");
+            let userName = window.UTIL.getUrlParam("uname");
+            let userAvatar = window.UTIL.getUrlParam("uavatar");
+            let properties = {
+                productId: productId,
+                userUuid: userUuid,
+                userName: userName,
+                userAvatar: userAvatar,
+            }
+            console.log("properties", properties)
+            if (productId !== null && productId > 0) {
+                $.ajax({
+                    type: "GET",
+                    url: window.API.PRODUCT.FIND + productId,
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8"
+                    },
+                    success: (response) => {
+                        if (response.success) {
+                            product = response.data
+                            document.title = product.name
+                            flow.load({
+                                elem: '#flows',
+                                // scrollElem: '#flows',
+                                // isAuto: false,
+                                isLazyimg: true,
+                                end: "<div class='layui-card layui-card-body' style='margin: 10px'>没有更多了</div>",
+                                done: function (page, next) {
+                                    setTimeout(function () {
+                                        let lis = [];
+                                        $.ajax({
+                                            type: "GET",
+                                            url: window.API.FEEDBACK.FIND_ALL_FEEDBACKS + product.id + "&page=" + page + "&type=recommend",
+                                            success: (res) => {
+                                                console.info(res);
+                                                layui.each(res.data.content, function (index, item) {
+                                                    lis.push(window.UTIL.generateFlowItem(item, properties));
+                                                });
+                                                next(lis.join(''), page < res.data.totalPages);
+                                            }
+                                        });
+                                    }, 500);
+                                }
+                            })
+                            flow.load({
+                                elem: '#flowsNewest',
+                                // scrollElem: '#flowsNewest',
+                                // isAuto: false,
+                                isLazyimg: true,
+                                end: "<div class='layui-card layui-card-body' style='margin: 10px'>没有更多了</div>",
+                                done: function (page, next) {
+                                    setTimeout(function () {
+                                        let lis = [];
+                                        $.ajax({
+                                            type: "GET",
+                                            url: window.API.FEEDBACK.FIND_ALL_FEEDBACKS + product.id + "&page=" + page + "&type=newest",
+                                            success: (res) => {
+                                                console.info(res);
+                                                layui.each(res.data.content, function (index, item) {
+                                                    lis.push(window.UTIL.generateFlowItem(item, properties));
+                                                });
+                                                next(lis.join(''), page < res.data.totalPages);
+                                            }
+                                        });
+                                    }, 500);
+                                }
+                            })
+                        } else {
+                            window.location.replace("/page/product/not-found.html")
+                        }
+                    }
+
+                })
+                $("#buttonNewFeedback").on("click", () => {
+                    window.open("/page/product/new-feedback.html" + window.location.search, "_blank")
+                })
+
+                $(document).on('click', 'i.iconButton', function () {
+                    //TODO 置顶、隐藏、锁定、标记为好问题、回复
+                    let feedbackId = $(this).attr("fid")
+                    let productId = $(this).attr("pid")
+                    layer.msg(feedbackId + "," + productId + "," + $(this).attr("type"))
+                    switch ($(this).attr("type")) {
+                        case "top": {
+                            break
+                        }
+                        case "hide": {
+                            break
+                        }
+                        case "lock": {
+                            break
+                        }
+                        case "recommend": {
+                            break
+                        }
+                        case "like": {
+                            break
+                        }
+                        case "reply": {
+                            break
+                        }
+                        default: {
+                        }
+                    }
+                });
+            } else {
+                window.location.replace("/page/404.html")
+            }
+        });
+
+    });
+</script>
+</body>
+</html>
+

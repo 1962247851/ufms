@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>产品反馈提交</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="../../images/favicon.ico">
+    <link rel="stylesheet" href="../../lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../css/feedback.css" media="all">
+    <link rel="stylesheet" href="../../css/themes/default.css" media="all">
+    <link rel="stylesheet" href="../../css/public.css" media="all">
+    <link rel="stylesheet" href="../../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.statidcfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+<div>
+    <form class="layui-form" action="" id="formFeedback">
+        <!--TODO 添加问题分类-->
+        <!--        <div class="layui-form-item">-->
+        <!--            <label class="layui-form-label">问题场景</label>-->
+        <!--            <div class="layui-input-block">-->
+        <!--                <select name="city" lay-verify="required">-->
+        <!--                    <option value=""></option>-->
+        <!--                    <option value="0">场景1</option>-->
+        <!--                    <option value="1">上海</option>-->
+        <!--                    <option value="2">广州</option>-->
+        <!--                    <option value="3">深圳</option>-->
+        <!--                    <option value="4">杭州</option>-->
+        <!--                </select>-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">说说你的问题</label>
+            <div class="layui-input-block">
+                <textarea name="content" class="layui-textarea" id="area" maxlength="500" placeholder="说说你的问题"
+                          lay-verify="required"></textarea>
+                <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
+                    <span id="textarea_length">0</span> / <span class="num_count">500</span>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="../../js/lay-config.js" charset="utf-8"></script>
+<script type="module" src="../../js/my-config.js" charset="utf-8"></script>
+<script>
+    layui.use(['jquery', 'layer', 'form'], function () {
+        let $ = layui.jquery,
+            layer = layui.layer,
+            form = layui.form, product;
+
+        $(() => {
+            let productId = window.UTIL.getUrlParam("pid");
+            let userUuid = window.UTIL.getUrlParam("uid");
+            let userName = window.UTIL.getUrlParam("uname");
+            let userAvatar = window.UTIL.getUrlParam("uavatar");
+            if (productId !== null && productId > 0) {
+                //监听textarea
+                $('#area').bind('input propertychange', 'textarea', function () {
+                        let obj = $(this)
+                        // console.log(obj)
+                        let maxlength = obj.attr('maxlength')
+                        let curr = obj.context.value.length;
+                        if (curr > maxlength) {
+                            layer.msg('字数在' + maxlength + '字以内');
+                        } else {
+                            $("#textarea_length").text(curr)
+                        }
+                    }
+                )
+                $("#buttonReset").on("click", () => $("#textarea_length").text(0))
+
+                $.ajax({
+                    type: "GET",
+                    url: window.API.PRODUCT.FIND + productId,
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8"
+                    },
+                    success: (response) => {
+                        if (response.success) {
+                            product = response.data
+                            //监听提交
+                            form.on('submit(submit)', function (data) {
+                                let field = data.field;
+                                field.product = {id: productId}
+                                field.userUuid = userUuid
+                                field.userName = userName
+                                field.userAvatar = userAvatar
+                                console.log(field)
+
+                                $.ajax({
+                                    type: "PUT",
+                                    url: window.API.FEEDBACK.INSERT,
+                                    data: JSON.stringify(field),
+                                    headers: {
+                                        "Content-Type": "application/json;charset=utf-8"
+                                    },
+                                    dataType: "json",
+                                    success: () => {
+                                        layer.msg("反馈提交成功！")
+
+                                        document.getElementById("textarea_length").innerHTML = "0";
+                                        $("#formFeedback")[0].reset();
+                                        form.render()
+                                    }
+                                })
+
+                                return false;
+                            });
+                        } else {
+                            window.location.replace("/page/product/not-found.html")
+                        }
+                    }
+                });
+            } else {
+                window.location.replace("/page/404.html")
+            }
+        });
+    });
+</script>
+</body>
+</html>
