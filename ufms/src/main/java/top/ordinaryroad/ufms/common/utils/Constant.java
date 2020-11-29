@@ -11,11 +11,11 @@ public class Constant {
     /**
      * 上传文件目录类型
      */
-    public static String UPLOAD_FILE_DIRECTORY_TYPE = "product,";
+    public static String UPLOAD_FILE_DIRECTORY_TYPE = "product,feedback";
 
     public static String getPictureBasePath() {
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
-            return "e:\\桌面\\";
+            return "f:\\";
         } else {
             return "/opt/ufms/data/file/picture/";
         }

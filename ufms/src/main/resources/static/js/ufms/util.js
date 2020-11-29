@@ -38,7 +38,13 @@ function timeAgo(timeStamp) {
     } else if ((currentTime < 60 * 60 * 24 * 3) && (currentTime >= 60 * 60 * 24)) {
         //超过1天少于3天内
         s = Math.floor(currentTime / 60 / 60 / 24);
-        return s + "天前";
+        if (s === 1) {
+            return "昨天";
+        } else if (s === 2) {
+            return "前天";
+        } else {
+            return "大前天";
+        }
     } else {
         //超过3天
         if (inputDate.getFullYear() !== currentDate.getFullYear()) {
@@ -201,10 +207,13 @@ function uuid() {
 }
 
 function getFileFullPath(uuid, filename, type) {
-    return window.API.FILE.DOWNLOAD + "?type=" + type + "&uuid=" + uuid + "&filename=" + filename
+    return (window.API.FILE.DOWNLOAD + "?type=" + type + "&uuid=" + uuid + "&filename=" + filename).replace(/\+/g, '%2B')
 }
 
 function getCustomUserInfoPath(properties) {
+    if (properties === null) {
+        return ''
+    }
     let path = ''
     if (properties.userUuid !== null && properties.userName !== null && properties.userAvatar !== null) {
         path += "&uid=" + properties.userUuid
@@ -216,22 +225,29 @@ function getCustomUserInfoPath(properties) {
 
 /**
  * 获取产品反馈首页地址
- * @param properties 产品id、用户id、用户名、用户头像地址等
+ * @param productId 产品id
  * @returns {string}
  */
-function getFullProductFeedbackPath(properties) {
-    return '/page/product/feedback.html?pid=' + properties.productId + getCustomUserInfoPath(properties);
+function getFullProductFeedbackPath(productId) {
+    return '/page/product/feedback.html?pid=' + productId + getCustomUserInfoPath(getCustomUserInfo());
 }
 
+/**
+ * 获取新增产品反馈地址
+ * @returns {string}
+ */
+function getFullNewProductFeedbackPath(productId) {
+    return '/page/product/new-feedback.html?pid=' + productId + getCustomUserInfoPath(getCustomUserInfo());
+}
 
 /**
  * 获取用户在某个产品下的所有反馈地址
+ * @param productId productId
  * @param selectedUserUuid 选中的用户id
- * @param properties productId、userUuid、userName、userAvatar
  * @returns {string}
  */
-function getFullUserFeedbackPath(selectedUserUuid, properties) {
-    return "/page/product/feedback-user.html?pid=" + properties.productId + "&suid=" + selectedUserUuid + getCustomUserInfoPath(properties)
+function getFullUserFeedbackPath(productId, selectedUserUuid) {
+    return "/page/product/feedback-user.html?pid=" + productId + "&suid=" + selectedUserUuid + getCustomUserInfoPath(getCustomUserInfo())
 }
 
 function setCurrentProduct(product) {
@@ -261,11 +277,12 @@ function copyToClipboard(elementId, value) {
 
 /**
  * 获取产品某个反馈下的所有回复的PATH
- * @param properties
+ * @param productId 产品id
+ * @param originalId 主贴id
  * @returns {string}
  */
-function getFullProductFeedbackRepliesPath(properties) {
-    return "/page/product/replies.html?pid=" + properties.productId + "&oid=" + properties.originalId + getCustomUserInfoPath(properties)
+function getFullProductFeedbackRepliesPath(productId, originalId) {
+    return "/page/product/replies.html?pid=" + productId + "&oid=" + originalId + getCustomUserInfoPath(getCustomUserInfo())
 }
 
 /**
@@ -283,11 +300,38 @@ function generateFlowReplyItem(item, properties) {
     })
     if (item.replies.totalElements > 3) {
         lis += ("<div>" +
-            "<a style='color: #009688' target='_blank' href=" + getFullProductFeedbackRepliesPath(properties) + ">" +
+            "<a style='color: #009688' target='_blank' href=" + getFullProductFeedbackRepliesPath(properties.productId, properties.originalId) + ">" +
             "共" + item.replies.totalElements + "条回复></a>" +
             "</div>")
     }
     return lis + '</div>'
+}
+
+/**
+ * 生成附图
+ * @param uuid {String}
+ * @param pictures {JSON}
+ * @returns {string}
+ */
+function generateFlowItemPictures(uuid, pictures) {
+    // console.log("pictures", pictures)
+    let str = '<div>';
+    str += '<div class="image-set mt-15">';
+    for (let index in pictures) {
+        /**
+         *       <a data-magnify="gallery"
+         data-caption="Paraglider flying over Aurlandfjord, Norway by framedbythomas"
+         href="https://farm1.staticflickr.com/512/32967783396_a6b4babd92_z.jpg">
+         <img src="https://farm1.staticflickr.com/512/32967783396_a6b4babd92_s.jpg" alt="">
+         </a>
+         */
+        let fileName = pictures[index];
+        let fileFullPath = getFileFullPath(uuid, fileName, 'feedback');
+        str += "<a data-magnify='gallery' href='" + fileFullPath + "' data-caption='" + fileName + "' data-group='" + uuid + "'>"
+        str += '<img lay-src="' + fileFullPath + '" alt="' + fileName + '">'
+        str += "</a>"
+    }
+    return str + "</div></div>";
 }
 
 /**
@@ -300,6 +344,8 @@ function generateFlowItem(item, properties) {
     let productId = properties.productId
     //主贴或者回复详情页面
     if (item.original === undefined || item.original === null || properties.isReplies) {
+        //设置originalId
+        properties.originalId = item.id
         let str = ''
         str += '<li>' +
             '<div class="layui-card" style="margin: 10px;">' +
@@ -313,13 +359,22 @@ function generateFlowItem(item, properties) {
                 '<span class="avatar-content">' + item.userName[item.userName.length - 1] + '</span>' +
                 '</div>'
         } else {
-            str += '<img class="layui-nav-img" style="margin: 5px;"  lay-src="' + item.userAvatar + '" alt="' + item.userName + '"/>'
+            str += '<img data-magnify="gallery" class="layui-nav-img" style="margin: 5px;cursor: zoom-in;"  lay-src="' + item.userAvatar + '" data-src="' + item.userAvatar + '" alt="' + item.userName + '" data-group="' + item.userName + '"/>'
         }
         //用户在某个产品下的所有反馈
-        str += '<a target="_blank" style="color: #009688;margin-left: 5px" href="' + getFullUserFeedbackPath(item.userUuid, properties) + '">' + item.userName + '</a>' +
+        str += '<a target="_blank" style="color: '
+        if (item.isAdmin) {
+            str += '#FFB800';
+        } else {
+            str += '#009688';
+        }
+        str += ';margin-left: 5px" href="' + getFullUserFeedbackPath(productId, item.userUuid) + '">' + item.userName + '</a>' +
             '<span style="margin-left: 5px; font-size: small" >' + timeAgo(item.createdDate) + '</span>' +
             '</div>' +
             '<div class="layui-col-lg2 layui-col-md2 layui-col-sm3 layui-col-xs3" style="text-align: right">';
+        if (item.isLocked) {
+            str += '<span class="label label-lock">已锁定</span>'
+        }
         if (item.isRecommend) {
             str += '<span class="label label-good">好问题</span>'
         }
@@ -331,38 +386,65 @@ function generateFlowItem(item, properties) {
             '</div>' +
             '<div class="layui-card-body">';
         if (item.parent !== null) {
-            str += " 回复 " + '<a target="_blank" style="color: #009688" href="' + getFullUserFeedbackPath(item.parent.userUuid, properties) + '">' + item.parent.userName + '</a>：'
+            str += " 回复 " + '<a target="_blank" style="color: '
+            if (item.parent.isAdmin) {
+                str += '#FFB800';
+            } else {
+                str += '#009688';
+            }
+            str += '" href="' + getFullUserFeedbackPath(productId, item.parent.userUuid) + '">' + item.parent.userName + '</a>：'
         }
         //回复详情——文字
         str += '<span>' + item.content + '</span>'
         //回复详情——配图
-        str += '<div style="text-align: right;">' +
-            '<div class="bottom-toolbar-hover-hide-item">' +
-            '<i class="iconButton fa fa-arrow-circle-o-up layui-icon-top" type="top" pid="' + productId + '" fid="' + item.id + '"/>' +
-            '<i class="iconButton fa fa-lock fa-eye-slash" type="hide" pid="' + productId + '" fid="' + item.id + '"/>' +
-            '<i class="iconButton fa fa-lock layui-icon-top" type="lock" pid="' + productId + '" fid="' + item.id + '"/>' +
-            '<i class="iconButton fa fa-star-o" type="recommend" pid="' + productId + '" fid="' + item.id + '"/>' +
-            '</div>' +
-            '<i class="iconButton fa fa-thumbs-o-up" type="like" pid="' + productId + '" fid="' + item.id + '">';
-        if (item.likeCount !== 0) {
-            //点赞次数
-            str += "<span style='font-size: 15px;margin-left: 5px'>" + item.likeCount + "</span>";
+        if (item.pictures !== null) {
+            str += generateFlowItemPictures(item.uuid, JSON.parse(item.pictures))
         }
-        str += '</i><i class="iconButton fa fa-reply" type="reply" pid="' + productId + '" fid="' + item.id + '"/>' +
+        str += '<div style="text-align: right;">' +
+            '<div class="bottom-toolbar-hover-hide-item">'
+        //主贴并且已登录并且才显示置顶等操作
+        if (item.original === null) {
+            console.log(item)
+            let user = window.UTIL.getSessionStorageUser();
+            if (user !== null && item.product.user.id === user.id) {
+                str += '<i class="iconButton fa fa-arrow-circle-o-up layui-icon-top" type="top" pid="' + productId + '" fid="' + item.id + '"/>' +
+                    '<i class="iconButton fa fa-lock fa-eye-slash" type="hide" pid="' + productId + '" fid="' + item.id + '"/>' +
+                    '<i class="iconButton fa fa-lock layui-icon-top" type="lock" pid="' + productId + '" fid="' + item.id + '"/>' +
+                    '<i class="iconButton fa fa-star-o" type="recommend" pid="' + productId + '" fid="' + item.id + '"/>'
+            }
+        }
+        if (!properties.isReplies) {
+            //反馈详情
+            str += '<a target="_blank" href="' + getFullProductFeedbackRepliesPath(productId, properties.originalId) + '"><i class="iconButton fa fa-file-text-o" type="detail" pid="' + productId + '" fid="' + item.id + '"/></a>';
+        }
+        //点赞次数
+        str += '</div><i class="iconButton fa fa-thumbs-o-up" type="like" pid="' + productId + '" fid="' + item.id + '">';
+        str += "<span style='font-size: 14px;margin-left: 3px;'>" + (item.likeCount === 0 ? '' : item.likeCount) + "</span>";
+        str += '</i><i class="iconButton fa fa-reply" type="reply" pid="' + productId + '" fid="' + item.id + '" style="margin-left: 6px"/>' +
             '</div>' +
             '</div>' +
             '</div>';
         //回复
         if (item.replies !== undefined && item.replies !== null && !item.replies.empty) {
-            properties.originalId = item.id
             str += '<ul>' + generateFlowReplyItem(item, properties) + '</ul>'
         }
         return str + '</li>';
     } else {
-        let str = '<li>' +
-            '<a target="_blank" style="color: #009688" href="' + getFullUserFeedbackPath(item.userUuid, properties) + '">' + item.userName + '</a>';
+        let str = '<li><a target="_blank" style="color: ';
+        if (item.isAdmin) {
+            str += '#FFB800';
+        } else {
+            str += '#009688';
+        }
+        str += '" href="' + getFullUserFeedbackPath(productId, item.userUuid) + '">' + item.userName + '</a>';
         if (item.parent !== null) {
-            str += " 回复 " + '<a target="_blank" style="color: #009688" href="' + getFullUserFeedbackPath(item.parent.userUuid, properties) + '">' + item.parent.userName + '</a>'
+            str += " 回复 " + '<a target="_blank" style="color: '
+            if (item.parent.isAdmin) {
+                str += '#FFB800';
+            } else {
+                str += '#009688';
+            }
+            str += '" href="' + getFullUserFeedbackPath(productId, item.parent.userUuid) + '">' + item.parent.userName + '</a>'
         }
         str += '：<span>' + item.content + '</span>' +
             '</li>'
@@ -408,7 +490,9 @@ function getUrlParam(name) {
 
 /**
  * 获取自定义登录态参数
- * @returns {{userAvatar: *, userUuid: (*|null|number), userName: *}|null}
+ * 优先返回url中设置的user
+ * 如果已登录，但是访问其他非自己创建的，则不是admin，会在controller中进一步判断，如果已登录并且是产品的创建者，则自动isAdmin=true
+ * @returns {{userAvatar: {String}, userUuid: (String), userName: {String}}|null}
  */
 function getCustomUserInfo() {
     let allUrlParams = getAllUrlParams()
@@ -422,7 +506,28 @@ function getCustomUserInfo() {
         }
     } else {
         return null
+        // let user = getSessionStorageUser();
+        // if (user !== null) {
+        //     return {
+        //         userUuid: user.uuid,
+        //         userName: user.name,
+        //         userAvatar: user.avatar
+        //     }
+        // }
     }
+    // return null
+}
+
+/**
+ * 获取session中保存的user
+ * @returns {null|Object}
+ */
+function getSessionStorageUser() {
+    let userString = sessionStorage.getItem("user");
+    if (userString !== null) {
+        return JSON.parse(userString)
+    }
+    return null
 }
 
 export const UTIL = {
@@ -439,15 +544,17 @@ export const UTIL = {
     getFileFullPath: getFileFullPath,
     getCurrentProduct: getCurrentProduct,
     setCurrentProduct: setCurrentProduct,
-    getFullUserFeedbackPath: getFullUserFeedbackPath,
+    // getFullUserFeedbackPath: getFullUserFeedbackPath,
     copyToClipboard: copyToClipboard,
     generateFlowItem: generateFlowItem,
-    generateFlowReplyItem: generateFlowReplyItem,
+    // generateFlowReplyItem: generateFlowReplyItem,
     getFullProductFeedbackPath: getFullProductFeedbackPath,
-    getFullProductFeedbackRepliesPath: getFullProductFeedbackRepliesPath,
+    // getFullProductFeedbackRepliesPath: getFullProductFeedbackRepliesPath,
     getCustomUserInfo: getCustomUserInfo,
     getUrlParam: getUrlParam,
     getAllUrlParams: getAllUrlParams,
+    getFullNewProductFeedbackPath: getFullNewProductFeedbackPath,
+    getSessionStorageUser: getSessionStorageUser,
 };
 
 export default {

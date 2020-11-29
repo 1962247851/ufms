@@ -10,13 +10,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import top.ordinaryroad.ufms.common.entity.JsonResult;
+import top.ordinaryroad.ufms.common.enums.ResultCode;
 import top.ordinaryroad.ufms.common.utils.OffsetBasedPageRequest;
+import top.ordinaryroad.ufms.common.utils.ResultTool;
 import top.ordinaryroad.ufms.dao.UfmsFeedbackDao;
 import top.ordinaryroad.ufms.entity.UfmsFeedback;
 import top.ordinaryroad.ufms.entity.UfmsProduct;
 import top.ordinaryroad.ufms.service.UfmsFeedbackService;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 用户反馈服务实现类
@@ -152,7 +156,7 @@ public class UfmsFeedbackServiceImpl implements UfmsFeedbackService {
         if ("newest".equals(type)) {
             pageRequest = PageRequest.of(page, limit, Sort.by("id").descending());
         } else if ("recommend".equals(type)) {
-            pageRequest = PageRequest.of(page, limit, Sort.by("isTopping", "isRecommend", "id").descending());
+            pageRequest = PageRequest.of(page, limit, Sort.by("isTopping", "isRecommend", "likeCount", "id").descending());
         } else {
             pageRequest = PageRequest.of(page, limit, Sort.by("id").descending());
         }
@@ -182,14 +186,9 @@ public class UfmsFeedbackServiceImpl implements UfmsFeedbackService {
      */
     @Override
     public Page<UfmsFeedback> findAllFeedbackReplies(@NotNull Integer page, @NotNull Integer limit, @NotNull Long feedbackId, @NotNull Long productId) {
+        //点赞最多或者最新的在上面
+        Sort sort = Sort.by("likeCount", "id").descending();
         //layui默认从1开始，jpa默认从0开始
-        //最新的在上面
-        Sort sort;
-//        if (limit == 3) {
-        sort = Sort.by("id").descending();
-//        } else {
-//            sort = Sort.by("id").ascending();
-//        }
         PageRequest pageRequest = PageRequest.of(page - 1, limit, sort);
         return dao.findAll((Specification<UfmsFeedback>) (root, criteriaQuery, criteriaBuilder) -> criteriaBuilder.and(
                 criteriaBuilder.equal(root.<Boolean>get("isHidden"), false),
@@ -208,14 +207,8 @@ public class UfmsFeedbackServiceImpl implements UfmsFeedbackService {
      */
     @Override
     public Page<UfmsFeedback> findAllFeedbackReplies(@NotNull Integer offset, @NotNull Long feedbackId, @NotNull Long productId) {
-        //layui默认从1开始，jpa默认从0开始
         //最新的在上面
-        Sort sort;
-//        if (limit == 3) {
-        sort = Sort.by("id").descending();
-//        } else {
-//            sort = Sort.by("id").ascending();
-//        }
+        Sort sort = Sort.by("id").descending();
         Pageable pageable = OffsetBasedPageRequest.of(offset, 10, sort);
         return dao.findAll((Specification<UfmsFeedback>) (root, criteriaQuery, criteriaBuilder) -> criteriaBuilder.and(
                 criteriaBuilder.equal(root.<Boolean>get("isHidden"), false),
@@ -241,6 +234,78 @@ public class UfmsFeedbackServiceImpl implements UfmsFeedbackService {
                 criteriaBuilder.equal(root.<String>get("userUuid"), userId),
                 criteriaBuilder.equal(root.join("product"), productId)
         ), pageRequest);
+    }
+
+    /**
+     * 点赞某个反馈，likeCount+1
+     *
+     * @param feedbackId 反馈id
+     * @return 是否成功
+     */
+    @Override
+    public Boolean like(@NotNull Long feedbackId) {
+        Optional<UfmsFeedback> byId = dao.findById(feedbackId);
+        if (byId.isPresent()) {
+            UfmsFeedback ufmsFeedback = byId.get();
+            ufmsFeedback.setLikeCount(ufmsFeedback.getLikeCount() + 1);
+            dao.saveAndFlush(ufmsFeedback);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 切换某个反馈的否标
+     *
+     * @param userId     用户id，用于权限校验
+     * @param property   哪一个属性
+     * @param feedbackId 反馈主贴id，original必须为null
+     * @return 是否置顶
+     */
+    @Override
+    public JsonResult<?> toggleIsProperty(@NotNull Long userId, @NotNull String property, @NotNull Long feedbackId) {
+        Optional<UfmsFeedback> byId = dao.findById(feedbackId);
+        Boolean result = null;
+        if (byId.isPresent()) {
+            UfmsFeedback ufmsFeedback = byId.get();
+            if (ufmsFeedback.getOriginal() == null) {
+                if (ufmsFeedback.getProduct().getUser().getId().equals(userId)) {
+                    switch (property) {
+                        case "top":
+                            ufmsFeedback.setIsTopping(!ufmsFeedback.getIsTopping());
+                            result = ufmsFeedback.getIsTopping();
+                            break;
+                        case "hide":
+                            ufmsFeedback.setIsHidden(!ufmsFeedback.getIsHidden());
+                            result = ufmsFeedback.getIsHidden();
+                            break;
+                        case "lock":
+                            ufmsFeedback.setIsLocked(!ufmsFeedback.getIsLocked());
+                            result = ufmsFeedback.getIsLocked();
+                            break;
+                        case "recommend":
+                            ufmsFeedback.setIsRecommend(!ufmsFeedback.getIsRecommend());
+                            result = ufmsFeedback.getIsRecommend();
+                            break;
+                        default:
+                            break;
+                    }
+                    if (result == null) {
+                        return ResultTool.fail(ResultCode.PARAM_NOT_VALID);
+                    } else {
+                        dao.saveAndFlush(ufmsFeedback);
+                        return ResultTool.success(result);
+                    }
+                } else {
+                    return ResultTool.fail(ResultCode.NO_PERMISSION);
+                }
+            } else {
+                return ResultTool.fail(ResultCode.ONLY_MAIN_FEEDBACK_CAN_BE_TOPPED);
+            }
+        } else {
+            return ResultTool.fail(ResultCode.DATA_NOT_EXIST);
+        }
     }
 
 }

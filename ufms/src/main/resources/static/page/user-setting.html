@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-cmn-Hans">
 <head>
     <meta charset="utf-8">
     <title>基本资料</title>
@@ -9,7 +9,11 @@
     <link rel="stylesheet" href="../lib/layui-v2.5.5/css/layui.css" media="all">
     <link rel="stylesheet" href="../css/public.css" media="all">
     <style>
-        .layui-form-item .layui-input-company {width: auto;padding-right: 10px;line-height: 38px;}
+        .layui-form-item .layui-input-company {
+            width: auto;
+            padding-right: 10px;
+            line-height: 38px;
+        }
     </style>
 </head>
 <body>
@@ -18,22 +22,24 @@
 
         <div class="layui-form layuimini-form">
             <div class="layui-form-item">
-                <label class="layui-form-label required">管理账号</label>
+                <label class="layui-form-label required" for="name">用户名</label>
                 <div class="layui-input-block">
-                    <input type="text" name="username" lay-verify="required" lay-reqtext="管理账号不能为空" placeholder="请输入管理账号"  value="admin" class="layui-input">
-                    <tip>填写自己管理账号的名称。</tip>
+                    <input type="text" name="name" id="name" lay-verify="required" lay-reqtext="用户名不能为空"
+                           placeholder="请输入用户名" class="layui-input">
+                    <tip>填写自己的用户名。</tip>
                 </div>
             </div>
             <div class="layui-form-item">
-                <label class="layui-form-label required">手机</label>
+                <label class="layui-form-label" for="phone">手机</label>
                 <div class="layui-input-block">
-                    <input type="number" name="phone" lay-verify="required" lay-reqtext="手机不能为空" placeholder="请输入手机"  value="" class="layui-input">
+                    <input type="number" name="phone" id="phone" placeholder="请输入手机" class="layui-input">
                 </div>
             </div>
             <div class="layui-form-item">
-                <label class="layui-form-label">邮箱</label>
+                <label class="layui-form-label required" for="email">邮箱</label>
                 <div class="layui-input-block">
-                    <input type="email" name="email"  placeholder="请输入邮箱"  value="" class="layui-input">
+                    <input type="email" name="email" id="email" lay-verify="required" lay-reqtext="邮箱不能为空"
+                           placeholder="请输入邮箱" class="layui-input">
                 </div>
             </div>
             <div class="layui-form-item layui-form-text">
@@ -53,23 +59,33 @@
 </div>
 <script src="../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
 <script src="../js/lay-config.js?v=1.0.4" charset="utf-8"></script>
+<script type="module" src="../js/my-config.js" charset="utf-8"></script>
 <script>
-    layui.use(['form','miniTab'], function () {
-        var form = layui.form,
+    layui.use(['form', 'miniTab', 'jquery'], function () {
+        let $ = layui.jquery,
+            form = layui.form,
             layer = layui.layer,
             miniTab = layui.miniTab;
 
-        //监听提交
-        form.on('submit(saveBtn)', function (data) {
-            var index = layer.alert(JSON.stringify(data.field), {
-                title: '最终的提交信息'
-            }, function () {
-                layer.close(index);
-                miniTab.deleteCurrentByIframe();
-            });
-            return false;
-        });
-
+        $(() => {
+            let user = window.UTIL.getSessionStorageUser();
+            console.log(user)
+            if (user !== null) {
+                $("#name").val(user.name)
+                $("#phone").val(user.phone)
+                $("#email").val(user.email)
+                //监听提交
+                form.on('submit(saveBtn)', function (data) {
+                    let index = layer.alert(JSON.stringify(data.field), {
+                        title: '最终的提交信息'
+                    }, function () {
+                        layer.close(index);
+                        miniTab.deleteCurrentByIframe();
+                    });
+                    return false;
+                });
+            }
+        })
     });
 </script>
 </body>

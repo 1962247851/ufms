@@ -12,6 +12,8 @@
     <meta name="format-detection" content="telephone=no">
     <link rel="icon" href="../../images/favicon.ico">
     <link rel="stylesheet" href="../../lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/magnify/jquery.magnify.min.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/magnify/docs.css" media="all">
     <link rel="stylesheet" href="../../css/themes/default.css" media="all">
     <link rel="stylesheet" href="../../css/feedback.css" media="all">
     <link rel="stylesheet" href="../../css/public.css" media="all">
@@ -26,7 +28,7 @@
 <div class="layui-container">
     <span class="layui-breadcrumb">
       <a id="backHome">首页</a>
-      <a><cite>用户信息</cite></a>
+      <a><cite>用户反馈列表</cite></a>
     </span>
     <div style="margin-top: 10px">
         <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
@@ -37,7 +39,9 @@
     </div>
 </div>
 
+<script src="../../lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
 <script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="../../lib/jq-module/magnify/jquery.magnify.min.js" charset="utf-8"></script>
 <script src="../../js/lay-config.js" charset="utf-8"></script>
 <script type="module" src="../../js/my-config.js" charset="utf-8"></script>
 <script>
@@ -58,11 +62,7 @@
             console.log(customUserInfo)
             if (productId !== null && productId > 0) {
                 $.ajax({
-                    type: "GET",
-                    url: window.API.PRODUCT.FIND + productId,
-                    headers: {
-                        "Content-Type": "application/json;charset=utf-8"
-                    },
+                    type: "GET", url: window.API.PRODUCT.FIND + productId,
                     success: (response) => {
                         if (response.success) {
                             //监听textarea
@@ -81,14 +81,7 @@
                             $("#buttonReset").on("click", () => $("#textarea_length").text(0))
                             product = response.data
 
-                            $("#backHome").attr("href",
-                                window.UTIL.getFullProductFeedbackPath({
-                                    productId: productId,
-                                    originalId: originalId,
-                                    userUuid: userUuid,
-                                    userName: userName,
-                                    userAvatar: userAvatar
-                                }))
+                            $("#backHome").attr("href", window.UTIL.getFullProductFeedbackPath(productId))
 
                             flow.load({
                                 elem: '#flows',
@@ -98,7 +91,6 @@
                                 end: "<div class='layui-card layui-card-body' style='margin: 10px'>没有更多了</div>",
                                 done: function (page, next) {
                                     setTimeout(function () {
-                                        //减去底部加载更多的一个
                                         let lis = [];
                                         $.ajax({
                                             type: "GET",
@@ -109,13 +101,12 @@
                                                 }
                                                 layui.each(res.data.content, function (index, item) {
                                                     lis.push(window.UTIL.generateFlowItem(item, {
-                                                        isReplies: true,
+                                                        // isReplies: true,
                                                         productId: productId,
                                                         originalId: originalId,
                                                         userUuid: userUuid,
                                                         userName: userName,
                                                         userAvatar: userAvatar
-
                                                     }));
                                                 });
                                                 next(lis.join(''), page < res.data.totalPages);
@@ -131,39 +122,57 @@
                 })
 
                 $(document).on('click', 'i.iconButton', function () {
-                    //TODO 置顶、隐藏、锁定、标记为好问题、回复
-                    let feedbackId = $(this).attr("fid")
-                    let productId = $(this).attr("pid")
-                    layer.msg(feedbackId + "," + productId + "," + $(this).attr("type"))
-                    switch ($(this).attr("type")) {
-                        case "top": {
-                            break
+                    let icon = $(this);
+                    let feedbackId = icon.attr("fid")
+                    let productId = icon.attr("pid")
+                    let type = icon.attr("type");
+                    let typeString;
+                    if (type === "like") {
+                        $.ajax({
+                            type: "POST", url: window.API.FEEDBACK.LIKE + feedbackId, success: (res) => {
+                                if (res.success) {
+                                    layer.msg("点赞成功")
+                                    let span = icon.find("span");
+                                    console.log(span)
+                                    span.text(parseInt(span[0].innerText === '' ? 0 : span[0].innerText) + 1)
+                                }
+                            }
+                        })
+                    } else if (type === "reply") {
+                    } else {
+                        switch (type) {
+                            case "top":
+                                typeString = "置顶"
+                                break
+                            case "hide":
+                                typeString = "隐藏"
+                                break
+                            case "lock":
+                                typeString = "锁定"
+                                break
+                            case "recommend":
+                                typeString = "好问题标记"
+                                break
+                            default:
+                                return true
                         }
-                        case "hide": {
-                            break
-                        }
-                        case "lock": {
-                            break
-                        }
-                        case "recommend": {
-                            break
-                        }
-                        case "like": {
-                            break
-                        }
-                        case "reply": {
-                            break
-                        }
-                        default: {
-                        }
+                        $.ajax({
+                            type: "POST",
+                            url: window.API.FEEDBACK.TOGGLE_IS_PROPERTY + feedbackId + "&property=" + type,
+                            success: (res) => {
+                                if (res.data) {
+                                    layer.msg(typeString + "成功")
+                                } else {
+                                    layer.msg("取消" + typeString + "成功")
+                                }
+                            }
+                        })
                     }
-                })
-
+                });
             } else {
                 window.location.replace("/page/404.html")
             }
-        })
-        ;
+        });
     });
 </script>
 </body>

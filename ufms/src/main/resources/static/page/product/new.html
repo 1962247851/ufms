@@ -17,38 +17,40 @@
         </fieldset>
         <form class="layui-form" action="" id="formProduct">
             <div class="layui-form-item">
-                <label class="layui-form-label">产品名称</label>
+                <label class="layui-form-label required" for="name">产品名称</label>
                 <div class="layui-input-block">
                     <input type="text" maxlength="10" lay-verify="required" lay-reqtext="产品怎么能没有名字呢？" name="name"
-                           lay-verify="name" placeholder="请输入产品名称" class="layui-input">
+                           placeholder="请输入产品名称" class="layui-input" id="name">
                 </div>
             </div>
             <div class="layui-form-item">
-                <label class="layui-form-label">产品官网</label>
+                <label class="layui-form-label" for="website">产品官网</label>
                 <div class="layui-input-block">
                     <input type="url" name="website" lay-verify="website" placeholder="请输入产品官网，以http://或https://开头"
-                           class="layui-input">
+                           class="layui-input" id="website">
                 </div>
             </div>
             <div class="layui-form-item">
                 <div class="layui-inline">
                     <label class="layui-form-label">产品Logo</label>
-                    <div class="layui-upload-drag" id="uploadLogo">
-                        <i class="layui-icon">&#xe67c;</i>
-                        <p>点击上传，或将文件拖拽到此处</p>
-                        <div class="layui-hide" id="uploadLogoView">
-                            <hr>
+                    <div id="uploadLogo" class="layui-upload-drag">
+                        <div id="uploadLogoViewTip">
+                            <i class="layui-icon">&#xe67c;</i>
+                            <p>点击上传，或将文件拖拽到此处</p>
+                        </div>
+                        <div id="uploadLogoView" class="layui-hide">
                             <img src="" alt="上传成功后渲染" style="max-width: 196px">
                         </div>
                     </div>
                 </div>
                 <div class="layui-inline">
                     <label class="layui-form-label">封面头图</label>
-                    <div class="layui-upload-drag" id="uploadBanner">
-                        <i class="layui-icon">&#xe67c;</i>
-                        <p>点击上传，或将文件拖拽到此处</p>
-                        <div class="layui-hide" id="uploadBannerView">
-                            <hr>
+                    <div id="uploadBanner" class="layui-upload-drag">
+                        <div id="uploadBannerViewTip">
+                            <i class="layui-icon">&#xe67c;</i>
+                            <p>点击上传，或将文件拖拽到此处</p>
+                        </div>
+                        <div id="uploadBannerView" class="layui-hide">
                             <img src="" alt="上传成功后渲染" style="max-width: 196px">
                         </div>
                     </div>
@@ -73,7 +75,7 @@
         let logo = ""
         let banner = ""
 
-        var $ = layui.jquery
+        let $ = layui.jquery
             , form = layui.form
             , layer = layui.layer
             , upload = layui.upload;
@@ -93,6 +95,7 @@
                 logo = res.data
                 layer.msg('上传成功');
                 console.log(res)
+                $('#uploadLogoViewTip').addClass('layui-hide')
                 $('#uploadLogoView').removeClass('layui-hide').find('img').attr('src', window.UTIL.getFileFullPath(uuid, res.data, "product"));
             }
         });
@@ -110,6 +113,7 @@
                 banner = res.data
                 layer.msg('上传成功');
                 console.log(res)
+                $('#uploadBannerViewTip').addClass('layui-hide');
                 $('#uploadBannerView').removeClass('layui-hide').find('img').attr('src', window.UTIL.getFileFullPath(uuid, res.data, "product"));
             }
         });
@@ -152,6 +156,8 @@
                         banner = ""
                         layer.msg("新增成功");
 
+                        $('#uploadLogoViewTip').removeClass('layui-hide')
+                        $('#uploadBannerViewTip').removeClass('layui-hide')
                         $('#uploadLogoView').addClass('layui-hide')
                         $('#uploadBannerView').addClass('layui-hide')
                         $("#formProduct")[0].reset();

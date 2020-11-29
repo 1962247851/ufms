@@ -10,7 +10,9 @@ import top.ordinaryroad.ufms.common.entity.JsonResult;
 import top.ordinaryroad.ufms.common.enums.ResultCode;
 import top.ordinaryroad.ufms.common.utils.IdUtils;
 import top.ordinaryroad.ufms.common.utils.ResultTool;
+import top.ordinaryroad.ufms.entity.SysUser;
 import top.ordinaryroad.ufms.entity.UfmsFeedback;
+import top.ordinaryroad.ufms.exception.UserNotLoginException;
 import top.ordinaryroad.ufms.service.UfmsFeedbackService;
 import top.ordinaryroad.ufms.service.UfmsProductService;
 
@@ -50,17 +52,43 @@ public class FeedbackController extends BaseUserController implements ForeignKey
         if (jsonResult != null) {
             return jsonResult;
         }
+        //主贴判断
+        UfmsFeedback original = entity.getOriginal();
+        if (original != null) {
+            UfmsFeedback originalFind = feedbackService.find(original.getId());
+            if (originalFind == null) {
+                return ResultTool.fail(ResultCode.ORIGINAL_FEEDBACK_NOT_EXIST);
+            } else {
+                if (originalFind.getIsLocked()) {
+                    return ResultTool.fail(ResultCode.ORIGINAL_FEEDBACK_LOCKED);
+                }
+            }
+        }
         entity.setProduct(productService.find(entity.getProduct().getId()));
         if (StringUtil.isNullOrEmpty(entity.getUuid())) {
             entity.setUuid(IdUtils.fastSimpleUUID());
         }
-        if (StringUtil.isNullOrEmpty(entity.getUserUuid()) || StringUtil.isNullOrEmpty(entity.getUserName()) || StringUtil.isNullOrEmpty(entity.getUserAvatar())) {
-            entity.setUserUuid(IdUtils.fastSimpleUUID());
-            entity.setUserName(new KCNamer().getRandomName());
-            entity.setUserAvatar(null);
+        //获取已登录的user
+        SysUser user;
+        try {
+            user = getUser();
+        } catch (UserNotLoginException e) {
+            user = null;
+            e.printStackTrace();
         }
-        System.out.println(entity);
-//        return ResultTool.success();
+        if (entity.getProduct().getUser().equals(user)) {
+            entity.setIsAdmin(true);
+            entity.setUserUuid(user.getUuid());
+            entity.setUserName(user.getName());
+            entity.setUserAvatar(user.getAvatar());
+        } else {
+            if (StringUtil.isNullOrEmpty(entity.getUserUuid()) || StringUtil.isNullOrEmpty(entity.getUserName()) || StringUtil.isNullOrEmpty(entity.getUserAvatar())) {
+                entity.setUserUuid(IdUtils.fastSimpleUUID());
+                entity.setUserName(new KCNamer().getRandomName());
+                entity.setUserAvatar(null);
+                entity.setIsAdmin(false);
+            }
+        }
         return ResultTool.success(feedbackService.insert(entity));
     }
 
@@ -104,7 +132,12 @@ public class FeedbackController extends BaseUserController implements ForeignKey
      */
     @Override
     public JsonResult<?> find(@RequestParam Long id) {
-        return null;
+        UfmsFeedback ufmsFeedback = feedbackService.find(id);
+        if (ufmsFeedback == null) {
+            return ResultTool.fail(ResultCode.DATA_NOT_EXIST);
+        } else {
+            return ResultTool.success(ufmsFeedback);
+        }
     }
 
     /**
@@ -206,5 +239,21 @@ public class FeedbackController extends BaseUserController implements ForeignKey
         return ResultTool.success(feedbackService.findAllUserFeedbackAndReply(page, limit, productId, userUuid));
     }
 
+    @PostMapping("like")
+    public JsonResult<?> like(@RequestParam Long feedbackId) {
+        return new JsonResult<>(feedbackService.like(feedbackId), ResultCode.DATA_NOT_EXIST);
+    }
+
+    @PostMapping("toggleIsProperty")
+    public JsonResult<?> toggleIsProperty(
+            @RequestParam(required = false) String property,
+            @RequestParam(required = false) Long feedbackId
+    ) {
+        if (property == null || feedbackId == null) {
+            return ResultTool.fail(ResultCode.PARAM_NOT_COMPLETE);
+        } else {
+            return feedbackService.toggleIsProperty(getUser().getId(), property, feedbackId);
+        }
+    }
 
 }

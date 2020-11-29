@@ -13,6 +13,8 @@
     <link rel="icon" href="../../images/favicon.ico">
     <link rel="stylesheet" href="../../lib/layui-v2.5.5/css/layui.css" media="all">
     <link rel="stylesheet" href="../../css/feedback.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/zyupload/zyupload-1.0.0.min.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/magnify/jquery.magnify.min.css" media="all">
     <link rel="stylesheet" href="../../css/themes/default.css" media="all">
     <link rel="stylesheet" href="../../css/public.css" media="all">
     <link rel="stylesheet" href="../../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
@@ -22,50 +24,77 @@
     <![endif]-->
 </head>
 <body>
-
-<div>
-    <form class="layui-form" action="" id="formFeedback">
-        <!--TODO 添加问题分类-->
-        <!--        <div class="layui-form-item">-->
-        <!--            <label class="layui-form-label">问题场景</label>-->
-        <!--            <div class="layui-input-block">-->
-        <!--                <select name="city" lay-verify="required">-->
-        <!--                    <option value=""></option>-->
-        <!--                    <option value="0">场景1</option>-->
-        <!--                    <option value="1">上海</option>-->
-        <!--                    <option value="2">广州</option>-->
-        <!--                    <option value="3">深圳</option>-->
-        <!--                    <option value="4">杭州</option>-->
-        <!--                </select>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <div class="layui-form-item layui-form-text">
-            <label class="layui-form-label">说说你的问题</label>
-            <div class="layui-input-block">
+<div class="layui-container">
+    <span class="layui-breadcrumb">
+      <a id="backHome">首页</a>
+      <a><cite>产品反馈提交</cite></a>
+    </span>
+    <div style="margin-top: 20px">
+        <form class="layui-form" action="" id="formFeedback">
+            <!--TODO 添加问题分类-->
+            <!--        <div class="layui-form-item">-->
+            <!--            <label class="layui-form-label">问题场景</label>-->
+            <!--            <div class="layui-input-block">-->
+            <!--                <select name="city" lay-verify="required">-->
+            <!--                    <option value=""></option>-->
+            <!--                    <option value="0">场景1</option>-->
+            <!--                    <option value="1">上海</option>-->
+            <!--                    <option value="2">广州</option>-->
+            <!--                    <option value="3">深圳</option>-->
+            <!--                    <option value="4">杭州</option>-->
+            <!--                </select>-->
+            <!--            </div>-->
+            <!--        </div>-->
+            <div class="layui-form-item layui-form-text" style="margin-bottom: 0">
+                <label class="layui-form-label required" for="area">反馈内容</label>
+                <div class="layui-input-block">
                 <textarea name="content" class="layui-textarea" id="area" maxlength="500" placeholder="说说你的问题"
                           lay-verify="required"></textarea>
-                <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
-                    <span id="textarea_length">0</span> / <span class="num_count">500</span>
+                    <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
+                        <span id="textarea_length">0</span> / <span class="num_count">500</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
-                <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>
+            <div class="layui-form-item">
+                <label class="layui-form-label">反馈附图</label>
+                <div class="layui-input-inline">
+                    <!--zyupload反馈附图文件上传-->
+                    <div id="zyupload" class="zyupload">
+                        <div id="bottomToolbar" style="margin-top: 254px;padding-bottom:  20px">
+                            <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
+                            <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </form>
+            <!--            <div class="layui-form-item" style="float: right">-->
+            <!--                <div class="layui-input-inline">-->
+            <!--                    <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>-->
+            <!--                    <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>-->
+            <!--                </div>-->
+            <!--            </div>-->
+        </form>
+    </div>
 </div>
-
+<script src="../../lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
 <script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="../../lib/jq-module/zyupload/zyupload-1.0.0.min.js" charset="utf-8"></script>
+<script src="../../lib/jq-module/magnify/jquery.magnify.min.js" charset="utf-8"></script>
 <script src="../../js/lay-config.js" charset="utf-8"></script>
 <script type="module" src="../../js/my-config.js" charset="utf-8"></script>
 <script>
-    layui.use(['jquery', 'layer', 'form'], function () {
-        let $ = layui.jquery,
-            layer = layui.layer,
-            form = layui.form, product;
+    layui.use(['layer', 'form', 'element'], function () {
+        let layer = layui.layer,
+            form = layui.form,
+            element = layui.element,
+            //产品
+            product,
+            //反馈的uuid，上传图片要用
+            uuid = window.UTIL.uuid(),
+            //图片列表，要转换为json
+            pictures = [],
+            //图片对应的data-index，zyupload中定义的，删除图片只是设置了display=none
+            picturesIndex = [];
 
         $(() => {
             let productId = window.UTIL.getUrlParam("pid");
@@ -73,37 +102,90 @@
             let userName = window.UTIL.getUrlParam("uname");
             let userAvatar = window.UTIL.getUrlParam("uavatar");
             if (productId !== null && productId > 0) {
-                //监听textarea
-                $('#area').bind('input propertychange', 'textarea', function () {
-                        let obj = $(this)
-                        // console.log(obj)
-                        let maxlength = obj.attr('maxlength')
-                        let curr = obj.context.value.length;
-                        if (curr > maxlength) {
-                            layer.msg('字数在' + maxlength + '字以内');
-                        } else {
-                            $("#textarea_length").text(curr)
-                        }
-                    }
-                )
-                $("#buttonReset").on("click", () => $("#textarea_length").text(0))
-
                 $.ajax({
-                    type: "GET",
-                    url: window.API.PRODUCT.FIND + productId,
-                    headers: {
-                        "Content-Type": "application/json;charset=utf-8"
-                    },
+                    type: "GET", url: window.API.PRODUCT.FIND + productId,
                     success: (response) => {
                         if (response.success) {
                             product = response.data
+                            document.title += "——" + product.name
+                            $("#bottomToolbar")[0].style.marginTop = '0'
+                            // 初始化文件上传插件
+                            $("#zyupload").zyUpload({
+                                width: "685px",                                                 // 宽度
+                                height: "200px",                                                // 高度
+                                itemWidth: "140px",                                             // 文件项的宽度
+                                itemHeight: "115px",                                            // 文件项的高度
+                                url: window.API.FILE.UPLOAD + "?type=feedback",                 // 上传文件的路径
+                                fileType: ["jpg", "png", "jpeg", "webp"],                       // 上传文件的类型
+                                fileSize: 51200000,                                             // 上传文件的大小
+                                multiple: true,                                                 // 是否可以多个文件上传
+                                dragDrop: true,                                                 // 是否可以拖动上传文件
+                                tailor: false,                                                  // 是否可以裁剪图片
+                                del: true,                                                      // 是否可以删除文件
+                                finishDel: false,  			                                 	// 是否在上传文件完成后删除预览
+                                /* 外部获得的回调接口 */
+                                onSelect: function (selectFiles, allFiles) {    // 选择文件的回调方法  selectFile:当前选中的文件  allFiles:还没上传的全部文件
+                                    console.info("当前选择了以下文件：");
+                                    console.info(selectFiles);
+                                    console.info("还没上传的全部文件");
+                                    console.info(allFiles);
+                                },
+                                onDelete: function (file, files) {              // 删除一个文件的回调方法 file:当前删除的文件  files:删除之后的文件
+                                    console.info("当前删除了此文件：");
+                                    console.info(file.name);
+                                    let indexOf = pictures.indexOf(file.name);
+                                    if (indexOf !== -1) {
+                                        pictures.splice(indexOf, 1)
+                                    }
+                                    console.log("pictures", pictures)
+                                },
+                                onSuccess: function (file, response) {          // 文件上传成功的回调方法
+                                    // let res = JSON.parse(response)
+                                    console.info("此文件上传成功：", file);
+                                    // $("#uploadInf").append("<p>上传成功，文件地址是：" + window.UTIL.getFileFullPath(uuid, res.data, 'feedback') + "</p>");
+                                    picturesIndex.push(file.index)
+                                    pictures.push(file.name)
+                                    console.log("pictures", pictures)
+                                },
+                                onFailure: function (file, response) {          // 文件上传失败的回调方法
+                                    console.info("此文件上传失败：");
+                                    console.info(file.name);
+                                },
+                                onComplete: function (response) {           	  // 上传完成的回调方法
+                                    layer.msg("文件上传完成")
+                                    console.info("文件上传完成");
+                                    console.info(response);
+                                }
+                            })
+                            $("#uploadForm").attr("uuid", uuid)
+                            //监听textarea
+                            $('#area').bind('input propertychange', 'textarea', function () {
+                                let obj = $(this)
+                                let maxlength = obj.attr('maxlength')
+                                let curr = obj[0].value.length;
+                                if (curr > maxlength) {
+                                    layer.msg('字数在' + maxlength + '字以内');
+                                } else {
+                                    $("#textarea_length").text(curr)
+                                }
+                            })
+                            //监听重置按钮，重置当前长度
+                            $("#buttonReset").on("click", function () {
+                                // $("#textarea_length").text(0)
+                                location.reload()
+                            })
+                            $("#backHome").attr("href", window.UTIL.getFullProductFeedbackPath(productId))
                             //监听提交
                             form.on('submit(submit)', function (data) {
                                 let field = data.field;
+                                field.uuid = uuid
                                 field.product = {id: productId}
                                 field.userUuid = userUuid
                                 field.userName = userName
                                 field.userAvatar = userAvatar
+                                if (pictures.length !== 0) {
+                                    field.pictures = JSON.stringify(pictures)
+                                }
                                 console.log(field)
 
                                 $.ajax({
@@ -116,8 +198,13 @@
                                     dataType: "json",
                                     success: () => {
                                         layer.msg("反馈提交成功！")
-
-                                        document.getElementById("textarea_length").innerHTML = "0";
+                                        for (let i = 0; i < picturesIndex.length; i++) {
+                                            ZYFILE.funDeleteFile(picturesIndex[i], true)
+                                        }
+                                        picturesIndex = []
+                                        uuid = window.UTIL.uuid()
+                                        $("#uploadForm").attr("uuid", uuid)
+                                        $("#textarea_length").text(0)
                                         $("#formFeedback")[0].reset();
                                         form.render()
                                     }
@@ -129,7 +216,7 @@
                             window.location.replace("/page/product/not-found.html")
                         }
                     }
-                });
+                })
             } else {
                 window.location.replace("/page/404.html")
             }

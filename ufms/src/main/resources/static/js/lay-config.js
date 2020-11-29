@@ -48,12 +48,16 @@ layui.config({
                     //登录过期，则跳转到登录页面
                     if (response.code === 2001) {
                         sessionStorage.removeItem("user")
-                        layer.alert("登录过期，将跳转到登录页面", function () {
-                            parent.location.href = '/login.html';
-                        })
+                        layer.open({
+                            title: "注意",
+                            content: '登录过期，将跳转到登录页面',
+                            end: function () {
+                                parent.location.href = '/login.html';
+                            }
+                        });
                     } else {
-                        layer.msg(response.msg)
-                        // return data
+                        layer.msg(response.code + response.msg)
+                        return data
                     }
                 } else {
                     return data

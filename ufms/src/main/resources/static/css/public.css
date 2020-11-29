@@ -68,3 +68,12 @@ body {
     -moz-border-radius: 2em;
     border-radius: 2em
 }
+
+.no-product-tip {
+    display: none;
+    text-align: center;
+}
+
+.no-product-tip button {
+    margin-top: 15px;
+}

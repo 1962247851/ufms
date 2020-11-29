@@ -246,7 +246,6 @@
                         loginSuccess(response);
                     } else {
                         generateCaptcha()
-                        layer.msg(response.msg + response.code, {time: 1500})
                     }
                 },
                 error: function (reason) {

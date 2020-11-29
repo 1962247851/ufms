@@ -57,6 +57,9 @@ public enum ResultCode {
     FILE_UPLOAD_MAX_COUNT(4011, "一次最多一个文件"),
     NAME_ALREADY_EXIST(4012, "该名称已经存在"),
     WEBSITE_ALREADY_EXIST(4013, "该网站地址已经存在"),
+    ONLY_MAIN_FEEDBACK_CAN_BE_TOPPED(4014, "只有主贴才可以置顶"),
+    ORIGINAL_FEEDBACK_LOCKED(4015, "主贴被锁定"),
+    ORIGINAL_FEEDBACK_NOT_EXIST(4016, "主贴不存在"),
     ;
 
     private Integer code;

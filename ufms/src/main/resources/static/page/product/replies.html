@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>回复详情</title>
+    <title>反馈详情</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -15,7 +15,10 @@
     <link rel="stylesheet" href="../../css/themes/default.css" media="all">
     <link rel="stylesheet" href="../../css/public.css" media="all">
     <link rel="stylesheet" href="../../css/feedback.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/magnify/jquery.magnify.min.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/magnify/docs.css" media="all">
     <link rel="stylesheet" href="../../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/zyupload/zyupload-1.0.0.min.css" media="all">
     <!--[if lt IE 9]>
     <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
     <script src="https://cdn.statidcfile.org/respond.js/1.4.2/respond.min.js"></script>
@@ -35,54 +38,74 @@
         <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
             <legend>评论<span id="repliesTitleCnt" style="margin-left: 5px;"></span></legend>
         </fieldset>
-        <form class="layui-form" action="" id="formFeedback">
-            <div class="layui-card" style="margin: 10px;">
+        <div class="layui-card" style="margin: 10px;">
+            <form class="layui-form" action="" id="formFeedback">
                 <div class="layui-card-body" style="padding-bottom: 0">
                     <div class="layui-form-item layui-form-text" style="margin-bottom: 0;">
-
-                        <div id="avatarDefault" class="avatar-container" style="float: left;display: none">
-                            <span class="avatar-content">像</span>
+                        <div style="width: 30px;float: left">
+                            <div id="avatarDefault" class="avatar-container" style="float: left;display: none">
+                                <span class="avatar-content">像</span>
+                            </div>
+                            <div id="customUserInfo" style="display: none;width: 30px">
+                                <img id="avatarUser" class="layui-nav-img" style="cursor: zoom-in" alt="" src="">
+                            </div>
                         </div>
-
-                        <div id="customUserInfo" style="display: none">
-                            <img id="avatarUser" class="layui-nav-img" alt="" src="">
-                            <span id="userName"></span>
-                        </div>
-
-                        <div class="layui-input-block" style="margin-left: 50px">
+                        <div style="margin-left: 45px">
                                 <textarea name="content" class="layui-textarea" id="area" maxlength="500"
                                           placeholder="别害羞，快来说两句吧" lay-verify="required"></textarea>
                             <div style="margin-top: 10px;margin-right: 8px; text-align: left;">
                                 <span id="textarea_length">0</span> / <span class="num_count">500</span>
                             </div>
-                        </div>
-                    </div>
-                    <div class="layui-card-header" style="padding-bottom: 10px;">
-                        <div class="layui-form-item">
-                            <div class="layui-input-block" style="text-align: right">
-                                <button class="layui-btn" lay-submit lay-filter="submit">评论</button>
-                                <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置
-                                </button>
+                            <div class="layui-form-item">
+                                <div class="layui-input-inline">
+                                    <!--zyupload反馈附图文件上传-->
+                                    <div id="zyupload" class="zyupload"></div>
+                                </div>
+                            </div>
+                            <div class="layui-card-header" style="padding-bottom: 10px;">
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block" style="text-align: right">
+                                        <button class="layui-btn" lay-submit lay-filter="submit">评论</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </form>
+            <!--锁帖提示-->
+            <div id="lockedTip" class="layui-hide"
+                 style="color: #FF5722;padding-top: 10px; padding-bottom: 10px;
+                 justify-content: center;display: flex;align-items: center;">
+                <i class="fa fa-lock" style="font-size: 22px;margin-right: 2px"></i>
+                <span style="height: 20px;line-height: 20px;font-size: 18px">已被锁定</span>
             </div>
-        </form>
+        </div>
         <ul id="flows">
         </ul>
     </div>
 </div>
 
 <script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="../../lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
+<script src="../../lib/jq-module/zyupload/zyupload-1.0.0.min.js" charset="utf-8"></script>
 <script src="../../js/lay-config.js" charset="utf-8"></script>
+<script src="../../lib/jq-module/magnify/jquery.magnify.min.js"></script>
 <script type="module" src="../../js/my-config.js" charset="utf-8"></script>
 <script>
     layui.use(['layer', 'element', 'flow', 'form'], function () {
         let $ = layui.jquery,//不用额外加载jQuery，flow模块本身是有依赖jQuery的，直接用即可。
             layer = layui.layer,
             form = layui.form,
-            flow = layui.flow;
+            flow = layui.flow,
+            //反馈的uuid，上传图片要用
+            uuid = window.UTIL.uuid(),
+            //图片列表，要转换为json
+            pictures = [],
+            //图片对应的data-index，zyupload中定义的，删除图片只是设置了display=none
+            picturesIndex = [];
 
         $(() => {
             let product, original = null;
@@ -92,132 +115,203 @@
             let userName = window.UTIL.getUrlParam("uname");
             let userAvatar = window.UTIL.getUrlParam("uavatar");
             let customUserInfo = window.UTIL.getCustomUserInfo();
+            let sessionStorageUser = window.UTIL.getSessionStorageUser();
             console.log(customUserInfo)
-            if (customUserInfo === null) {
+            if (customUserInfo === null && sessionStorageUser == null) {
                 $("#avatarDefault").css("display", "")
             } else {
                 $("#customUserInfo").css("display", "")
                 let avatarUser = $("#avatarUser");
-                avatarUser.attr("src", customUserInfo.userAvatar)
-
-                let $userName = $("#userName");
-                $userName.text(customUserInfo.userName)
+                avatarUser.attr("data-magnify", "gallery")
+                if (sessionStorageUser === null) {
+                    avatarUser.attr("src", customUserInfo.userAvatar)
+                    avatarUser.attr("data-src", customUserInfo.userAvatar)
+                    avatarUser.attr("data-group", customUserInfo.userName)
+                } else {
+                    avatarUser.attr("src", sessionStorageUser.avatar)
+                    avatarUser.attr("data-src", sessionStorageUser.avatar)
+                    avatarUser.attr("data-group", sessionStorageUser.name)
+                }
             }
-            console.log($.getAllUrlParams())
+            console.log(window.UTIL.getAllUrlParams())
             if (productId !== null && productId > 0) {
                 $.ajax({
-                    type: "GET",
-                    url: window.API.PRODUCT.FIND + productId,
-                    headers: {
-                        "Content-Type": "application/json;charset=utf-8"
-                    },
+                    type: "GET", url: window.API.PRODUCT.FIND + productId,
                     success: (response) => {
                         if (response.success) {
-                            //监听textarea
-                            $('#area').bind('input propertychange', 'textarea', function () {
-                                    let obj = $(this)
-                                    // console.log(obj)
-                                    let maxlength = obj.attr('maxlength')
-                                    let curr = obj.context.value.length;
-                                    if (curr > maxlength) {
-                                        layer.msg('字数在' + maxlength + '字以内');
-                                    } else {
-                                        $("#textarea_length").text(curr)
-                                    }
-                                }
-                            )
-                            $("#buttonReset").on("click", () => $("#textarea_length").text(0))
                             product = response.data
-                            //监听提交
-                            form.on('submit(submit)', function (data) {
-                                let field = data.field;
-                                field.product = {id: productId}
-                                field.original = {id: originalId}
-                                field.userUuid = userUuid
-                                field.userName = userName
-                                field.userAvatar = userAvatar
-                                console.log(field)
+                            document.title += "——" + product.name
+                            $.ajax({
+                                type: "GET", url: window.API.FEEDBACK.FIND + originalId,
+                                success: (response) => {
+                                    if (response.success) {
+                                        if (original === null) {
+                                            original = response.data
+                                            original.replies = null
+                                            $("#originalFeedback").append(window.UTIL.generateFlowItem(original,
+                                                {
+                                                    isReplies: true,
+                                                    productId: productId,
+                                                    userUuid: userUuid,
+                                                    userName: userName,
+                                                    userAvatar: userAvatar
+                                                }).replaceAll('lay-src="', 'src="')
+                                            )
+                                        }
+                                        if (original.isLocked) {
+                                            $("#lockedTip").removeClass("layui-hide")
+                                            $("#formFeedback").hide()
+                                            layer.msg("已被锁定")
+                                        } else {
+                                            //监听textarea
+                                            $('#area').bind('input propertychange', 'textarea', function () {
+                                                    let obj = $(this)
+                                                    // console.log(obj)
+                                                    let maxlength = obj.attr('maxlength')
+                                                    let curr = obj[0].value.length;
+                                                    if (curr > maxlength) {
+                                                        layer.msg('字数在' + maxlength + '字以内');
+                                                    } else {
+                                                        $("#textarea_length").text(curr)
+                                                    }
+                                                }
+                                            )
+                                            $("#buttonReset").on("click", () => $("#textarea_length").text(0))
+                                            // 初始化文件上传插件
+                                            $("#zyupload").zyUpload({
+                                                width: "685px",                                                 // 宽度
+                                                height: "200px",                                                // 高度
+                                                itemWidth: "140px",                                             // 文件项的宽度
+                                                itemHeight: "115px",                                            // 文件项的高度
+                                                url: window.API.FILE.UPLOAD + "?type=feedback",    // 上传文件的路径
+                                                fileType: ["jpg", "png", "jpeg", "webp"],                       // 上传文件的类型
+                                                fileSize: 51200000,                                             // 上传文件的大小
+                                                multiple: true,                                                 // 是否可以多个文件上传
+                                                dragDrop: false,                                                // 是否可以拖动上传文件
+                                                tailor: false,                                                  // 是否可以裁剪图片
+                                                del: true,                                                      // 是否可以删除文件
+                                                finishDel: false,  			                                 	// 是否在上传文件完成后删除预览
+                                                /* 外部获得的回调接口 */
+                                                onSelect: function (selectFiles, allFiles) {    // 选择文件的回调方法  selectFile:当前选中的文件  allFiles:还没上传的全部文件
+                                                    console.info("当前选择了以下文件：");
+                                                    console.info(selectFiles);
+                                                    console.info("还没上传的全部文件");
+                                                    console.info(allFiles);
+                                                },
+                                                onDelete: function (file, files) {              // 删除一个文件的回调方法 file:当前删除的文件  files:删除之后的文件
+                                                    console.info("当前删除了此文件：");
+                                                    console.info(file.name);
+                                                    let indexOf = pictures.indexOf(file.name);
+                                                    if (indexOf !== -1) {
+                                                        pictures.splice(indexOf, 1)
+                                                    }
+                                                    console.log("pictures", pictures)
+                                                },
+                                                onSuccess: function (file, response) {          // 文件上传成功的回调方法
+                                                    // let res = JSON.parse(response)
+                                                    console.info("此文件上传成功：", file);
+                                                    // $("#uploadInf").append("<p>上传成功，文件地址是：" + window.UTIL.getFileFullPath(uuid, res.data, 'feedback') + "</p>");
+                                                    picturesIndex.push(file.index)
+                                                    pictures.push(file.name)
+                                                    console.log("pictures", pictures)
+                                                },
+                                                onFailure: function (file, response) {          // 文件上传失败的回调方法
+                                                    console.info("此文件上传失败：");
+                                                    console.info(file.name);
+                                                },
+                                                onComplete: function (response) {           	  // 上传完成的回调方法
+                                                    console.info("文件上传完成");
+                                                    console.info(response);
+                                                }
+                                            })
+                                            $("#uploadForm").attr("uuid", uuid)
+                                            //监听提交
+                                            form.on('submit(submit)', function (data) {
+                                                let field = data.field;
+                                                field.uuid = uuid
+                                                field.product = {id: productId}
+                                                field.original = {id: originalId}
+                                                if (pictures.length !== 0) {
+                                                    field.pictures = JSON.stringify(pictures)
+                                                }
+                                                field.userUuid = userUuid
+                                                field.userName = userName
+                                                field.userAvatar = userAvatar
+                                                console.log(field)
 
-                                $.ajax({
-                                    type: "PUT",
-                                    url: window.API.FEEDBACK.INSERT,
-                                    data: JSON.stringify(field),
-                                    headers: {
-                                        "Content-Type": "application/json;charset=utf-8"
-                                    },
-                                    dataType: "json",
-                                    success: (res) => {
-                                        layer.msg("评论成功")
-                                        $("#flows").prepend(
-                                            window.UTIL.generateFlowItem(res.data, {
-                                                productId: productId,
-                                                isReplies: true,
-                                                userUuid: userUuid,
-                                                userName: userName,
-                                                userAvatar: userAvatar
-                                            }).replaceAll('lay-src="', 'src="'))
-                                        $("#repliesTitleCnt").text(parseInt($("#repliesTitleCnt")[0].innerText) + 1)
-                                        $("#textarea_length").text(0)
-                                        $("#formFeedback")[0].reset();
-                                        form.render()
-                                    }
-                                })
-                                return false;
-                            });
-
-                            $("#backHome").attr("href",
-                                window.UTIL.getFullProductFeedbackPath({
-                                    productId: productId,
-                                    originalId: originalId,
-                                    userUuid: userUuid,
-                                    userName: userName,
-                                    userAvatar: userAvatar
-                                }))
-
-                            flow.load({
-                                elem: '#flows',
-                                // scrollElem: '#flows',
-                                // isAuto: false,
-                                isLazyimg: true,
-                                end: "<div class='layui-card layui-card-body' style='margin: 10px'>没有更多了</div>",
-                                done: function (page, next) {
-                                    setTimeout(function () {
-                                        //减去底部加载更多的一个
-                                        let currentCnt = $("#flows")[0].children.length
-                                        console.log(currentCnt)
-                                        let lis = [];
-                                        $.ajax({
-                                            type: "GET",
-                                            url: window.API.FEEDBACK.FIND_ALL_FEEDBACK_REPLIES + product.id + "&offset=" + (currentCnt - 1) + "&feedbackId=" + originalId,
-                                            success: (res) => {
-                                                if (!res.data.empty) {
-                                                    $("#repliesTitleCnt").text(res.data.totalElements)
-                                                    if (original === null) {
-                                                        original = res.data.content[0].original
-                                                        original.replies = null
-                                                        $("#originalFeedback").append(window.UTIL.generateFlowItem(original,
-                                                            {
+                                                $.ajax({
+                                                    type: "PUT",
+                                                    url: window.API.FEEDBACK.INSERT,
+                                                    data: JSON.stringify(field),
+                                                    headers: {
+                                                        "Content-Type": "application/json;charset=utf-8"
+                                                    },
+                                                    dataType: "json",
+                                                    success: (res) => {
+                                                        layer.msg("评论成功")
+                                                        $("#flows").prepend(
+                                                            window.UTIL.generateFlowItem(res.data, {
                                                                 productId: productId,
+                                                                isReplies: true,
                                                                 userUuid: userUuid,
                                                                 userName: userName,
                                                                 userAvatar: userAvatar
-                                                            })
+                                                            }).replaceAll('lay-src="', 'src="')
                                                         )
+                                                        for (let i = 0; i < picturesIndex.length; i++) {
+                                                            ZYFILE.funDeleteFile(picturesIndex[i], true)
+                                                        }
+                                                        picturesIndex = []
+                                                        uuid = window.UTIL.uuid()
+                                                        $("#uploadForm").attr("uuid", uuid)
+                                                        let $repliesTitleCnt = $("#repliesTitleCnt");
+                                                        $repliesTitleCnt.text($repliesTitleCnt[0].innerText === '' ? 1 : parseInt($repliesTitleCnt[0].innerText) + 1)
+                                                        $("#textarea_length").text(0)
+                                                        $("#formFeedback")[0].reset();
+                                                        form.render()
                                                     }
-                                                }
-                                                layui.each(res.data.content, function (index, item) {
-                                                    lis.push(window.UTIL.generateFlowItem(item, {
-                                                        isReplies: true,
-                                                        productId: productId,
-                                                        userUuid: userUuid,
-                                                        userName: userName,
-                                                        userAvatar: userAvatar
-                                                    }));
-                                                });
-                                                next(lis.join(''), page < res.data.totalPages);
+                                                })
+                                                return false;
+                                            });
+                                        }
+                                        $("#backHome").attr("href", window.UTIL.getFullProductFeedbackPath(productId))
+                                        flow.load({
+                                            elem: '#flows',
+                                            // scrollElem: '#flows',
+                                            // isAuto: false,
+                                            isLazyimg: true,
+                                            end: "<div class='layui-card layui-card-body' style='margin: 10px'>没有更多了</div>",
+                                            done: function (page, next) {
+                                                setTimeout(function () {
+                                                    //减去底部加载更多的一个
+                                                    let currentCnt = $("#flows")[0].children.length
+                                                    console.log(currentCnt)
+                                                    let lis = [];
+                                                    $.ajax({
+                                                        type: "GET",
+                                                        url: window.API.FEEDBACK.FIND_ALL_FEEDBACK_REPLIES + product.id + "&offset=" + (currentCnt - 1) + "&feedbackId=" + originalId,
+                                                        success: (res) => {
+                                                            if (!res.data.empty) {
+                                                                $("#repliesTitleCnt").text(res.data.totalElements)
+                                                            }
+                                                            layui.each(res.data.content, function (index, item) {
+                                                                lis.push(window.UTIL.generateFlowItem(item, {
+                                                                    isReplies: true,
+                                                                    productId: productId,
+                                                                    userUuid: userUuid,
+                                                                    userName: userName,
+                                                                    userAvatar: userAvatar
+                                                                }));
+                                                            });
+                                                            next(lis.join(''), page < res.data.totalPages);
+                                                        }
+                                                    });
+                                                }, 500);
                                             }
-                                        });
-                                    }, 500);
+                                        })
+                                    } else {
+                                        window.location.replace("/page/feedback/not-found.html")
+                                    }
                                 }
                             })
                         } else {
@@ -227,39 +321,98 @@
                 })
 
                 $(document).on('click', 'i.iconButton', function () {
+                    let icon = $(this);
+                    console.log(icon)
                     //TODO 置顶、隐藏、锁定、标记为好问题、回复
-                    let feedbackId = $(this).attr("fid")
-                    let productId = $(this).attr("pid")
-                    layer.msg(feedbackId + "," + productId + "," + $(this).attr("type"))
-                    switch ($(this).attr("type")) {
-                        case "top": {
-                            break
+                    let feedbackId = icon.attr("fid")
+                    let productId = icon.attr("pid")
+                    let type = icon.attr("type");
+                    let typeString;
+                    if (type === "like") {
+                        $.ajax({
+                            type: "POST", url: window.API.FEEDBACK.LIKE + feedbackId, success: (res) => {
+                                if (res.success) {
+                                    layer.msg("点赞成功")
+                                    let span = icon.find("span");
+                                    console.log(span)
+                                    span.text(parseInt(span[0].innerText === '' ? 0 : span[0].innerText) + 1)
+                                }
+                            }
+                        })
+                    } else if (type === "reply") {
+                    } else {
+                        switch (type) {
+                            case "top":
+                                typeString = "置顶"
+                                break
+                            case "hide":
+                                typeString = "隐藏"
+                                break
+                            case "lock":
+                                typeString = "锁定"
+                                break
+                            case "recommend":
+                                typeString = "好问题标记"
+                                break
+                            default:
+                                return true
                         }
-                        case "hide": {
-                            break
-                        }
-                        case "lock": {
-                            break
-                        }
-                        case "recommend": {
-                            break
-                        }
-                        case "like": {
-                            break
-                        }
-                        case "reply": {
-                            break
-                        }
-                        default: {
-                        }
+                        $.ajax({
+                            type: "POST",
+                            url: window.API.FEEDBACK.TOGGLE_IS_PROPERTY + feedbackId + "&property=" + type,
+                            success: (res) => {
+                                if (res.data) {
+                                    layer.msg(typeString + "成功")
+                                } else {
+                                    layer.msg("取消" + typeString + "成功")
+                                }
+                            }
+                        })
                     }
                 })
-
             } else {
                 window.location.replace("/page/404.html")
             }
         })
 
+    })
+
+    $('[data-magnify]').magnify({
+        headerToolbar: [
+            'minimize',
+            'maximize',
+            'close'
+        ],
+        footerToolbar: [
+            'prev',
+            'next',
+            'zoomIn',
+            'zoomOut',
+            'fullscreen',
+            'actualSize',
+            'rotateLeft',
+            'rotateRight',
+            'myCustomButton'
+        ],
+        customButtons: {
+            myCustomButton: {
+                text: 'custom!',
+                title: 'custom!',
+                click: function (context, e) {
+                    alert('clicked the custom button!');
+                }
+            }
+        },
+        modalWidth: 400,
+        modalHeight: 400,
+        callbacks: {
+            beforeChange: function (context, index) {
+                console.log(context, index)
+            },
+            changed: function (context, index) {
+                console.log(context, index)
+            }
+        }
     })
 
 </script>

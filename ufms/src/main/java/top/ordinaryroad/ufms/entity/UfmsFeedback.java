@@ -107,7 +107,7 @@ public class UfmsFeedback extends MyJsonStringObject {
      * 是否为管理员
      */
     @NotNull
-    @Transient
+    @Column(nullable = false, columnDefinition = "bit(1) default 0")
     private Boolean isAdmin = false;
     /**
      * 图片list
@@ -144,7 +144,7 @@ public class UfmsFeedback extends MyJsonStringObject {
      * 反馈者头像url
      */
     @Nullable
-    @Column
+    @Column(length = 1000)
     private String userAvatar;
     /**
      * 当主贴的时候为null，回复也可能为null

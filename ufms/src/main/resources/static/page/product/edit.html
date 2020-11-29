@@ -19,9 +19,9 @@
         <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
             <legend>产品设置</legend>
         </fieldset>
-        <form class="layui-form" action="" id="formProduct">
+        <form class="layui-form" action="" id="formProduct" style="display: none;">
             <div class="layui-form-item">
-                <label class="layui-form-label">产品名称</label>
+                <label class="layui-form-label required" for="name">产品名称</label>
                 <div class="layui-input-block" style="display: flex; justify-content: center;align-items: center">
                     <div class="layui-col-md11 layui-col-sm11 layui-col-xs9 layui-col-lg11">
                         <input type="text" name="name" id="name" lay-verify="website" disabled
@@ -35,7 +35,7 @@
                 </div>
             </div>
             <div class="layui-form-item">
-                <label class="layui-form-label">产品官网</label>
+                <label class="layui-form-label" for="website">产品官网</label>
                 <div class="layui-input-block" style="display: flex; justify-content: center;align-items: center">
                     <div class="layui-col-md11 layui-col-sm11 layui-col-xs9 layui-col-lg11">
                         <input type="url" name="website" id="website" lay-verify="website" disabled
@@ -52,10 +52,11 @@
                 <div class="layui-inline">
                     <label class="layui-form-label">产品Logo</label>
                     <div class="layui-upload-drag" id="uploadLogo">
-                        <i class="layui-icon">&#xe67c;</i>
-                        <p>点击上传，或将文件拖拽到此处</p>
-                        <div class="layui-hide" id="uploadLogoView">
-                            <hr>
+                        <div id="uploadLogoViewTip" class="layui-hide">
+                            <i class="layui-icon">&#xe67c;</i>
+                            <p>点击上传，或将文件拖拽到此处</p>
+                        </div>
+                        <div id="uploadLogoView" class="layui-hide">
                             <img src="" alt="上传成功后渲染" style="max-width: 196px">
                         </div>
                     </div>
@@ -63,27 +64,32 @@
                 <div class="layui-inline">
                     <label class="layui-form-label">封面头图</label>
                     <div class="layui-upload-drag" id="uploadBanner">
-                        <i class="layui-icon">&#xe67c;</i>
-                        <p>点击上传，或将文件拖拽到此处</p>
-                        <div class="layui-hide" id="uploadBannerView">
-                            <hr>
+                        <div id="uploadBannerViewTip" class="layui-hide">
+                            <i class="layui-icon">&#xe67c;</i>
+                            <p>点击上传，或将文件拖拽到此处</p>
+                        </div>
+                        <div id="uploadBannerView" class="layui-hide">
                             <img src="" alt="上传成功后渲染" style="max-width: 196px">
                         </div>
                     </div>
                 </div>
             </div>
         </form>
+        <div id="noProductTip" class="no-product-tip">
+            <button class="layui-btn" id="newProduct">没有产品被选中，点我立即创建新产品</button>
+        </div>
     </div>
 </div>
 <script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
 <script src="../../js/lay-config.js" charset="utf-8"></script>
 <script type="module" src="../../js/my-config.js" charset="utf-8"></script>
 <script>
-    layui.use(['form', 'upload'], function () {
+    layui.use(['jquery', 'form', 'upload', 'miniTab'], function () {
 
         let $ = layui.jquery
             , form = layui.form
             , layer = layui.layer
+            , miniTab = layui.miniTab
             , upload = layui.upload;
 
         //拖拽上传
@@ -119,21 +125,26 @@
             }
         });
 
+
         function loadCurrentProduct() {
             let currentProduct = window.UTIL.getCurrentProduct()
             if (currentProduct !== null) {
                 $("#name").val(currentProduct.name)
                 $("#website").val(currentProduct.website)
-                if (currentProduct.logo == null) {
+                if (currentProduct.logo === null || currentProduct.logo === '') {
                     $('#uploadLogoView').addClass('layui-hide')
+                    $('#uploadLogoViewTip').removeClass('layui-hide')
                 } else {
-                    $('#uploadLogoView').removeClass('layui-hide').find('img').attr('src', window.UTIL.getFileFullPath(currentProduct.uuid, currentProduct.logo, "product"));
+                    $('#uploadLogoView').removeClass('layui-hide').find('img').attr('src', window.UTIL.getFileFullPath(currentProduct.uuid, currentProduct.logo, "product")).attr('alt', currentProduct.logo);
                 }
-                if (currentProduct.banner == null) {
+                if (currentProduct.banner === null || currentProduct.banner === '') {
                     $('#uploadBannerView').addClass('layui-hide')
+                    $('#uploadBannerViewTip').removeClass('layui-hide')
                 } else {
-                    $('#uploadBannerView').removeClass('layui-hide').find('img').attr('src', window.UTIL.getFileFullPath(currentProduct.uuid, currentProduct.banner, "product"));
+                    $('#uploadBannerView').removeClass('layui-hide').find('img').attr('src', window.UTIL.getFileFullPath(currentProduct.uuid, currentProduct.banner, "product")).attr('alt', currentProduct.banner);
                 }
+                $("#buttonEditName").on("click", onEditProductClick)
+                $("#buttonEditWebsite").on("click", onEditProductClick)
             }
         }
 
@@ -203,9 +214,20 @@
 
         $(() => {
             //初始化
-            loadCurrentProduct()
-            $("#buttonEditName").on("click", onEditProductClick)
-            $("#buttonEditWebsite").on("click", onEditProductClick)
+            let currentProduct = window.UTIL.getCurrentProduct()
+            if (currentProduct !== null) {
+                $("#formProduct").show()
+                loadCurrentProduct()
+            } else {
+                $("#noProductTip").show()
+                $("#newProduct").on("click", function () {
+                    // 打开新的窗口
+                    miniTab.openNewTabByIframe({
+                        href: "page/product/new.html",
+                        title: "添加产品",
+                    });
+                })
+            }
         })
 
     });

@@ -23,6 +23,7 @@ const PRODUCT = {
 }
 
 const FEEDBACK = {
+    FIND: FEEDBACK_BASE_URL + FIND + "?id=",
     FIND_ALL_BY_FOREIGN_KEY: FEEDBACK_BASE_URL + FIND_ALL_BY_FOREIGN_KEY + "?productId=",
     FIND_ALL_FEEDBACKS: FEEDBACK_BASE_URL + "/findAllFeedbacks?productId=",
     FIND_ALL_FEEDBACK_REPLIES: FEEDBACK_BASE_URL + "/findAllFeedbackReplies?productId=",
@@ -30,6 +31,8 @@ const FEEDBACK = {
     INSERT: FEEDBACK_BASE_URL + INSERT,
     DELETE: FEEDBACK_BASE_URL + DELETE,
     UPDATE: FEEDBACK_BASE_URL + UPDATE,
+    LIKE: FEEDBACK_BASE_URL + "/like?feedbackId=",
+    TOGGLE_IS_PROPERTY: FEEDBACK_BASE_URL + "/toggleIsProperty?feedbackId=",
 }
 
 const CAPTCHA = {

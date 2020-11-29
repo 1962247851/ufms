@@ -24,120 +24,142 @@
     <![endif]-->
 </head>
 <body>
-<div style="
-    border: 1px solid #f2f2f2;
-    border-radius: 5px;
-">
-
-    <div class="layui-card" style="padding-top: 2px">
-        <div class="layuimini-main">
-            <div class="layui-card-header">
-                <fieldset class="layui-elem-field layui-field-title">
-                    <legend>项目反馈首页地址</legend>
-                </fieldset>
-            </div>
-            <div class="layui-card-body">
-                <div>
-                    <span>URL（点击复制）：</span><span style="cursor: pointer" id="feedbackHome">https://localhost:1116/page/product/feedback.html?pid=</span>
+<div style="border: 1px solid #f2f2f2;border-radius: 5px;">
+    <div id="content" style="display: none;">
+        <div class="layui-card" style="padding-top: 2px">
+            <div class="layuimini-main">
+                <div class="layui-card-header">
+                    <fieldset class="layui-elem-field layui-field-title">
+                        <legend>项目反馈首页地址</legend>
+                    </fieldset>
                 </div>
-                <table class="layui-table">
-                    <thead>
-                    <tr>
-                        <th>参数</th>
-                        <th>说明</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="requiredTr">
-                        <td>pid</td>
-                        <td>产品ID（必选）</td>
-                    </tr>
-                    <tr>
-                        <td>uid</td>
-                        <td>用户ID，由开发者自行维护，不传入则表示随机生成</td>
-                    </tr>
-                    <tr>
-                        <td>uname</td>
-                        <td>用户名，由开发者自行维护，不传入则表示随机生成</td>
-                    </tr>
-                    <tr>
-                        <td>uavatar</td>
-                        <td>用户头像url，由开发者自行维护，不传入则为空</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <p style="font-weight: bold">注意：<br>uid、uname、uavatar三者必须同时传入，否则自定义登录态会构建失败</p>
+                <div class="layui-card-body">
+                    <div>
+                        <span>URL（点击复制）：</span><span style="cursor: pointer" id="feedbackHome">https://localhost:1116/page/product/feedback.html?pid=</span>
+                    </div>
+                    <table class="layui-table">
+                        <thead>
+                        <tr>
+                            <th>参数</th>
+                            <th>说明</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="requiredTr">
+                            <td>pid</td>
+                            <td>产品ID（必选）</td>
+                        </tr>
+                        <tr>
+                            <td>uid</td>
+                            <td>用户ID，由开发者自行维护，不传入则表示随机生成</td>
+                        </tr>
+                        <tr>
+                            <td>uname</td>
+                            <td>用户名，由开发者自行维护，不传入则表示随机生成</td>
+                        </tr>
+                        <tr>
+                            <td>uavatar</td>
+                            <td>用户头像url，由开发者自行维护，不传入则为空</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-weight: bold">注意：<br>uid、uname、uavatar三者必须同时传入，否则自定义登录态会构建失败</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-card" style="margin-top: 20px;padding-top: 2px">
+            <div class="layuimini-main">
+                <div class="layui-card-header">
+                    <fieldset class="layui-elem-field layui-field-title">
+                        <legend>项目反馈提交页面地址</legend>
+                    </fieldset>
+                </div>
+                <div class="layui-card-body">
+                    <div>
+                        <span>URL（点击复制）：</span><span style="cursor: pointer" id="newFeedback"></span>
+                    </div>
+                    <table class="layui-table">
+                        <thead>
+                        <tr>
+                            <th>参数</th>
+                            <th>说明</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="requiredTr">
+                            <td>pid</td>
+                            <td>产品ID（必选）</td>
+                        </tr>
+                        <tr>
+                            <td>uid</td>
+                            <td>用户ID，由开发者自行维护，不传入则表示随机生成</td>
+                        </tr>
+                        <tr>
+                            <td>uname</td>
+                            <td>用户名，由开发者自行维护，不传入则表示随机生成</td>
+                        </tr>
+                        <tr>
+                            <td>uavatar</td>
+                            <td>用户头像url，由开发者自行维护，不传入则为空</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-weight: bold">注意：<br>uid、uname、uavatar三者必须同时传入，否则自定义登录态会构建失败</p>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="layui-card" style="margin-top: 20px;padding-top: 2px">
-        <div class="layuimini-main">
-            <div class="layui-card-header">
-                <fieldset class="layui-elem-field layui-field-title">
-                    <legend>项目反馈提交页面地址</legend>
+    <div id="noProductTip" class="no-product-tip">
+        <div class="layuimini-container">
+            <div class="layuimini-main">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;text-align: left">
+                    <legend>接入地址</legend>
                 </fieldset>
-            </div>
-            <div class="layui-card-body">
                 <div>
-                    <span>URL（点击复制）：</span><span style="cursor: pointer" id="newFeedback"></span>
+                    <button class="layui-btn" id="newProduct">没有产品被选中，点我立即创建新产品</button>
                 </div>
-                <table class="layui-table">
-                    <thead>
-                    <tr>
-                        <th>参数</th>
-                        <th>说明</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="requiredTr">
-                        <td>pid</td>
-                        <td>产品ID（必选）</td>
-                    </tr>
-                    <tr>
-                        <td>uid</td>
-                        <td>用户ID，由开发者自行维护，不传入则表示随机生成</td>
-                    </tr>
-                    <tr>
-                        <td>uname</td>
-                        <td>用户名，由开发者自行维护，不传入则表示随机生成</td>
-                    </tr>
-                    <tr>
-                        <td>uavatar</td>
-                        <td>用户头像url，由开发者自行维护，不传入则为空</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <p style="font-weight: bold">注意：<br>uid、uname、uavatar三者必须同时传入，否则自定义登录态会构建失败</p>
             </div>
         </div>
     </div>
-
 </div>
-
 
 <script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
 <script src="../../js/lay-config.js" charset="utf-8"></script>
 <script type="module" src="../../js/my-config.js" charset="utf-8"></script>
 <script>
-    layui.use(['jquery', 'layer'], function () {
+    layui.use(['jquery', 'layer', 'miniTab'], function () {
             let $ = layui.jquery,
-                layer = layui.layer;
+                layer = layui.layer,
+                miniTab = layui.miniTab;
 
             $(() => {
-                init();
-                $("#feedbackHome").on("click", (e) => {
-                    window.UTIL.copyToClipboard("feedbackHome", e.target.innerText);
-                    layer.msg("已复制到剪切板", () => {
-                        document.getElementById("feedbackHome").style.removeProperty("color");
+                let currentProduct = window.UTIL.getCurrentProduct()
+                if (currentProduct !== null) {
+                    $("#content").show();
+                    init();
+                    $("#feedbackHome").on("click", (e) => {
+                        window.UTIL.copyToClipboard("feedbackHome", e.target.innerText);
+                        layer.msg("已复制到剪切板", () => {
+                            document.getElementById("feedbackHome").style.removeProperty("color");
+                        })
                     })
-                })
-                $("#newFeedback").on("click", (e) => {
-                    window.UTIL.copyToClipboard("newFeedback", e.target.innerText);
-                    layer.msg("已复制到剪切板", () => {
-                        document.getElementById("newFeedback").style.removeProperty("color");
+                    $("#newFeedback").on("click", (e) => {
+                        window.UTIL.copyToClipboard("newFeedback", e.target.innerText);
+                        layer.msg("已复制到剪切板", () => {
+                            document.getElementById("newFeedback").style.removeProperty("color");
+                        })
                     })
-                })
+                } else {
+                    $("#noProductTip").show()
+                    $("#newProduct").on("click", function () {
+                        // 打开新的窗口
+                        miniTab.openNewTabByIframe({
+                            href: "page/product/new.html",
+                            title: "添加产品",
+                        });
+                    })
+                }
             })
 
             function init() {

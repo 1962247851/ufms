@@ -18,6 +18,11 @@
     border: 1px solid #5FB878;
 }
 
+.label-lock {
+    color: #FF5722;
+    border: 1px solid #FF5722;
+}
+
 .sticky {
     position: -webkit-sticky; /* Safari */
     position: sticky;

@@ -2,6 +2,7 @@ package top.ordinaryroad.ufms.service;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
+import top.ordinaryroad.ufms.common.entity.JsonResult;
 import top.ordinaryroad.ufms.common.service.ForeignKeyCrudService;
 import top.ordinaryroad.ufms.entity.UfmsFeedback;
 
@@ -56,4 +57,22 @@ public interface UfmsFeedbackService extends ForeignKeyCrudService<UfmsFeedback,
      * @return 分页的所有数据
      */
     Page<UfmsFeedback> findAllUserFeedbackAndReply(@NotNull Integer page, @NotNull Integer limit, @NotNull Long productId, @NotNull String userId);
+
+    /**
+     * 点赞某个反馈，likeCount+1
+     *
+     * @param feedbackId 反馈id
+     * @return 是否成功
+     */
+    Boolean like(@NotNull Long feedbackId);
+
+    /**
+     * 切换某个反馈的否标
+     *
+     * @param userId     用户id，用于权限校验
+     * @param property   哪一个属性
+     * @param feedbackId 反馈主贴id，original必须为null
+     * @return 是否置顶
+     */
+    JsonResult<?> toggleIsProperty(@NotNull Long userId, @NotNull String property, @NotNull Long feedbackId);
 }

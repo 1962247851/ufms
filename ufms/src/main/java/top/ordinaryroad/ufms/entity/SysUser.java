@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import top.ordinaryroad.ufms.common.entity.MyJsonStringObject;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -33,6 +34,12 @@ public class SysUser extends MyJsonStringObject implements Serializable {
     )
     private Long id;
     /**
+     * UUID
+     */
+    @Column(unique = true, nullable = false)
+    @NotNull
+    private String uuid;
+    /**
      * 用户名
      */
     @Column(unique = true, nullable = false, length = 20)
@@ -46,6 +53,12 @@ public class SysUser extends MyJsonStringObject implements Serializable {
      * 出生日期
      */
     private Date birthday;
+    /**
+     * 头像地址
+     */
+    @NotNull
+    @Column(length = 1000, nullable = false)
+    private String avatar;
     /**
      * 邮箱
      */
@@ -87,12 +100,6 @@ public class SysUser extends MyJsonStringObject implements Serializable {
      */
     @LastModifiedDate
     private Date updateTime;
-
-//    /**
-//     * 一个用户对应多个产品
-//     */
-//    @OneToMany
-//    private List<UfmsProduct> productList;
 
     public SysUser(Long id) {
         this.id = id;

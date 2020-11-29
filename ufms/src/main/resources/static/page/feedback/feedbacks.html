@@ -26,54 +26,59 @@
         <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
             <legend>所有反馈</legend>
         </fieldset>
-        <fieldset class="table-search-fieldset">
-            <legend>搜索信息</legend>
-            <div style="margin: 10px 10px 10px 10px">
-                <form class="layui-form layui-form-pane" action="" id="searchForm">
-                    <div class="layui-form-item">
-                        <div class="layui-inline">
-                            <label class="layui-form-label" style="width: 150px">反馈者唯一标识符</label>
-                            <div class="layui-input-inline">
-                                <input type="text" name="userUuid" autocomplete="off" class="layui-input">
+        <div id="content" style="display: none;">
+            <fieldset class="table-search-fieldset">
+                <legend>搜索信息</legend>
+                <div style="margin: 10px 10px 10px 10px">
+                    <form class="layui-form layui-form-pane" action="" id="searchForm">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label" style="width: 150px">反馈者唯一标识符</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="userUuid" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label" style="width: 140px">反馈者唯用户名</label>
+                                <div class="layui-input-inline">
+                                    <input type="url" name="userName" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">反馈内容</label>
+                                <div class="layui-input-inline">
+                                    <input type="url" name="content" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                        lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索
+                                </button>
+                                <button type="reset" class="layui-btn layui-btn-primary" lay-submit
+                                        lay-filter="data-reset-btn"><i class="layui-icon layui-icon-refresh"></i> 重 置
+                                </button>
                             </div>
                         </div>
-                        <div class="layui-inline">
-                            <label class="layui-form-label" style="width: 140px">反馈者唯用户名</label>
-                            <div class="layui-input-inline">
-                                <input type="url" name="userName" autocomplete="off" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-inline">
-                            <label class="layui-form-label">反馈内容</label>
-                            <div class="layui-input-inline">
-                                <input type="url" name="content" autocomplete="off" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-inline">
-                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
-                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索
-                            </button>
-                            <button type="reset" class="layui-btn layui-btn-primary" lay-submit
-                                    lay-filter="data-reset-btn"><i class="layui-icon layui-icon-refresh"></i> 重 置
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </fieldset>
+                    </form>
+                </div>
+            </fieldset>
 
-        <script type="text/html" id="toolbarDemo">
-            <div class="layui-btn-container">
-                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
-            </div>
-        </script>
+            <script type="text/html" id="toolbarDemo">
+                <div class="layui-btn-container">
+                    <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除
+                    </button>
+                </div>
+            </script>
 
-        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+            <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
 
-        <script type="text/html" id="currentTableBar">
-            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
-        </script>
-
+            <script type="text/html" id="currentTableBar">
+                <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+            </script>
+        </div>
+        <div id="noProductTip" class="no-product-tip">
+            <button class="layui-btn" id="newProduct">没有产品被选中，点我立即创建新产品</button>
+        </div>
     </div>
 </div>
 <script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
@@ -81,10 +86,179 @@
 <script type="module" src="../../js/my-config.js" charset="utf-8"></script>
 <script>
     layui.use(['form', 'table', 'miniTab'], function () {
-        var $ = layui.jquery,
+        let $ = layui.jquery,
             form = layui.form,
             table = layui.table,
             miniTab = layui.miniTab;
+
+        $(() => {
+            let currentProduct = window.UTIL.getCurrentProduct()
+            if (currentProduct !== null) {
+                $("#content").show()
+                table.render({
+                    elem: '#currentTableId',
+                    url: window.API.FEEDBACK.FIND_ALL_BY_FOREIGN_KEY + window.UTIL.getCurrentProduct().id,
+                    parseData: function (res) { //res 即为原始返回的数据
+                        return {
+                            //解析接口状态
+                            "code": res.code === 200 ? 0 : res.code,
+                            //解析提示文本
+                            "msg": res.msg,
+                            //解析数据长度
+                            "count": res.data.totalElements,
+                            //解析数据列表
+                            "data": res.data.content
+                        };
+                    },
+                    toolbar: '#toolbarDemo',
+                    defaultToolbar: ['filter', 'exports', 'print', {
+                        title: '提示',
+                        layEvent: 'LAYTABLE_TIPS',
+                        icon: 'layui-icon-tips'
+                    }],
+                    cols: [
+                        [
+                            {type: "checkbox", width: 50},
+                            {field: 'id', width: 80, title: 'ID', sort: true},
+                            {
+                                field: 'createdDate', width: 160, title: '反馈时间', sort: true, templet: function (d) {
+                                    return window.UTIL.formatTime(d.createdDate)
+                                }
+                            },
+                            {field: 'userUuid', width: 275, title: '反馈者唯一标识符', sort: true},
+                            {field: 'userName', width: 140, title: '反馈者用户名', sort: true},
+                            {
+                                field: 'userAvatar', width: 200, title: '反馈者头像url', templet: (d) => {
+                                    if (d.userAvatar === null) {
+                                        return "暂无头像";
+                                    } else {
+                                        return '<img class="layui-nav-img" alt="" src="' + d.userAvatar + '">';
+                                    }
+                                }
+                            },
+                            {field: 'content', width: 250, title: '反馈内容', sort: true},
+                            {field: 'images', width: 250, title: '反馈附图'},
+                            {field: 'likeCount', width: 160, title: '反馈被点赞次数', sort: true},
+                            {
+                                field: 'isHidden', width: 160, title: '是否隐藏', sort: true, templet: (d) => {
+                                    let checked = d.isHidden ? 'checked' : '';
+                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                }
+                            },
+                            {
+                                field: 'isTopping', width: 160, title: '是否置顶', sort: true, templet: (d) => {
+                                    let checked = d.isTopping ? 'checked' : '';
+                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                }
+                            },
+                            {
+                                field: 'isLocked', width: 160, title: '是否锁定', sort: true, templet: (d) => {
+                                    let checked = d.isLocked ? 'checked' : '';
+                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                }
+                            },
+                            {
+                                field: 'isRecommend', width: 160, title: '是否标记为好问题', sort: true, templet: (d) => {
+                                    let checked = d.isRecommend ? 'checked' : '';
+                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                }
+                            },
+                            {
+                                field: 'isAdmin', width: 160, title: '是否为管理员', sort: true, templet: (d) => {
+                                    let checked = d.isAdmin ? 'checked' : '';
+                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                }
+                            },
+                            {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
+                        ]
+                    ],
+                    limits: [10, 15, 20, 25, 50, 100],
+                    // limit: 15,
+                    page: true,
+                    // skin: 'line'
+                });
+                // 监听搜索操作
+                form.on('submit(data-search-btn)', function (data) {
+                    var result = JSON.stringify(data.field);
+                    //执行搜索重载
+                    reloadTableSearch(result)
+                    return false;
+                });
+                // 监听重置操作
+                form.on('submit(data-reset-btn)', function () {
+                    //执行搜索重载
+                    reloadTable();
+                    $("#searchForm")[0].reset();
+                    form.render();
+                    return false;
+                });
+                /**
+                 * toolbar监听事件
+                 */
+                table.on('toolbar(currentTableFilter)', function (obj) {
+                    if (obj.event === 'delete') {  // 监听删除操作
+                        //TODO 删除多条数据
+                        let checkStatus = table.checkStatus('currentTableId')
+                            , data = checkStatus.data;
+                        let ids = [];
+                        data.forEach(function (feedback) {
+                            ids.push(feedback.id)
+                        })
+                        if (ids.length !== 0) {
+                            layer.alert(
+                                "该操作不可恢复，确定删除选中的" + ids.length + "条数据？", {
+                                    title: "注意"
+                                }, function () {
+                                    deleteFeedbacks(ids, function (response) {
+                                            console.log(response);
+                                            reloadTable();
+                                            layer.msg("删除成功");
+                                        }, function (reason) {
+                                            layer.alert(reason, {title: '删除失败'})
+                                        }
+                                    )
+                                });
+                        } else {
+                            layer.msg("请先选择数据");
+                        }
+                    } else if (obj.event === 'LAYTABLE_TIPS') {
+                        //TODO 提示
+                        layer.alert("展示产品下的反馈管理（删查）", {
+                            title: "提示"
+                        });
+                    }
+                });
+                //监听表格复选框选择
+                table.on('checkbox(currentTableFilter)', function (obj) {
+                    console.log(obj) //得到当前行元素对象
+                });
+                table.on('tool(currentTableFilter)', function (obj) {
+                    let data = obj.data;
+                    if (obj.event === 'delete') {
+                        layer.confirm('确定删除反馈 ' + data.content, function (index) {
+                            //TODO 删除
+                            deleteFeedbacks([data.id], function (response) {
+                                console.log(response)
+                                obj.del();
+                                layer.msg("删除成功");
+                                layer.close(index);
+                            }, function (reason) {
+                                layer.alert(reason, {title: '删除失败'})
+                            })
+                        });
+                    }
+                });
+            } else {
+                $("#noProductTip").show()
+                $("#newProduct").on("click", function () {
+                    // 打开新的窗口
+                    miniTab.openNewTabByIframe({
+                        href: "page/product/new.html",
+                        title: "添加产品",
+                    });
+                })
+            }
+        })
 
         function deleteFeedbacks(ids, success, error) {
             $.ajax({
@@ -95,107 +269,7 @@
                 success: success,
                 error: error
             })
-
         }
-
-        table.render({
-            elem: '#currentTableId',
-            url: window.API.FEEDBACK.FIND_ALL_BY_FOREIGN_KEY + window.UTIL.getCurrentProduct().id,
-            parseData: function (res) { //res 即为原始返回的数据
-                return {
-                    //解析接口状态
-                    "code": res.code === 200 ? 0 : res.code,
-                    //解析提示文本
-                    "msg": res.msg,
-                    //解析数据长度
-                    "count": res.data.totalElements,
-                    //解析数据列表
-                    "data": res.data.content
-                };
-            },
-            toolbar: '#toolbarDemo',
-            defaultToolbar: ['filter', 'exports', 'print', {
-                title: '提示',
-                layEvent: 'LAYTABLE_TIPS',
-                icon: 'layui-icon-tips'
-            }],
-            cols: [
-                [
-                    {type: "checkbox", width: 50},
-                    {field: 'id', width: 80, title: 'ID', sort: true},
-                    {
-                        field: 'createdDate', width: 160, title: '反馈时间', sort: true, templet: function (d) {
-                            return window.UTIL.formatTime(d.createdDate)
-                        }
-                    },
-                    {field: 'userUuid', width: 275, title: '反馈者唯一标识符', sort: true},
-                    {field: 'userName', width: 140, title: '反馈者用户名', sort: true},
-                    {
-                        field: 'userAvatar', width: 200, title: '反馈者头像url', templet: (d) => {
-                            if (d.userAvatar === null) {
-                                return "暂无头像";
-                            } else {
-                                return '<img class="layui-nav-img" src="' + d.userAvatar + '">';
-                            }
-                        }
-                    },
-                    {field: 'content', width: 250, title: '反馈内容', sort: true},
-                    {field: 'images', width: 250, title: '反馈附图'},
-                    {field: 'likeCount', width: 160, title: '反馈被点赞次数', sort: true},
-                    {
-                        field: 'isHidden', width: 160, title: '是否隐藏', sort: true, templet: (d) => {
-                            let checked = d.isHidden ? 'checked' : '';
-                            return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
-                        }
-                    },
-                    {
-                        field: 'isTopping', width: 160, title: '是否置顶', sort: true, templet: (d) => {
-                            let checked = d.isTopping ? 'checked' : '';
-                            return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
-                        }
-                    },
-                    {
-                        field: 'isLocked', width: 160, title: '是否锁定', sort: true, templet: (d) => {
-                            let checked = d.isLocked ? 'checked' : '';
-                            return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
-                        }
-                    },
-                    {
-                        field: 'isRecommend', width: 160, title: '是否标记为好问题', sort: true, templet: (d) => {
-                            let checked = d.isRecommend ? 'checked' : '';
-                            return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
-                        }
-                    },
-                    {
-                        field: 'isAdmin', width: 160, title: '是否为管理员', sort: true, templet: (d) => {
-                            let checked = d.isAdmin ? 'checked' : '';
-                            return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
-                        }
-                    },
-                    {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
-                ]
-            ],
-            limits: [10, 15, 20, 25, 50, 100],
-            // limit: 15,
-            page: true,
-            // skin: 'line'
-        });
-
-        // 监听搜索操作
-        form.on('submit(data-search-btn)', function (data) {
-            var result = JSON.stringify(data.field);
-            //执行搜索重载
-            reloadTableSearch(result)
-            return false;
-        });
-        // 监听重置操作
-        form.on('submit(data-reset-btn)', function () {
-            //执行搜索重载
-            reloadTable();
-            $("#searchForm")[0].reset();
-            form.render();
-            return false;
-        });
 
         function reloadTable() {
             table.reload('currentTableId', {page: {curr: 1}, where: {searchParams: {}}});
@@ -204,65 +278,6 @@
         function reloadTableSearch(searchParams) {
             table.reload('currentTableId', {page: {curr: 1}, where: {searchParams: searchParams}});
         }
-
-        /**
-         * toolbar监听事件
-         */
-        table.on('toolbar(currentTableFilter)', function (obj) {
-            if (obj.event === 'delete') {  // 监听删除操作
-                //TODO 删除多条数据
-                let checkStatus = table.checkStatus('currentTableId')
-                    , data = checkStatus.data;
-                let ids = [];
-                data.forEach(function (feedback) {
-                    ids.push(feedback.id)
-                })
-                if (ids.length !== 0) {
-                    layer.alert(
-                        "该操作不可恢复，确定删除选中的" + ids.length + "条数据？", {
-                            title: "注意"
-                        }, function () {
-                            deleteFeedbacks(ids, function (response) {
-                                    console.log(response);
-                                    reloadTable();
-                                    layer.msg("删除成功");
-                                }, function (reason) {
-                                    layer.alert(reason, {title: '删除失败'})
-                                }
-                            )
-                        });
-                } else {
-                    layer.msg("请先选择数据");
-                }
-            } else if (obj.event === 'LAYTABLE_TIPS') {
-                //TODO 提示
-                layer.alert("展示产品下的反馈管理（删查）", {
-                    title: "提示"
-                });
-            }
-        });
-
-        //监听表格复选框选择
-        table.on('checkbox(currentTableFilter)', function (obj) {
-            console.log(obj) //得到当前行元素对象
-        });
-
-        table.on('tool(currentTableFilter)', function (obj) {
-            let data = obj.data;
-            if (obj.event === 'delete') {
-                layer.confirm('确定删除反馈 ' + data.content, function (index) {
-                    //TODO 删除
-                    deleteFeedbacks([data.id], function (response) {
-                        console.log(response)
-                        obj.del();
-                        layer.msg("删除成功");
-                        layer.close(index);
-                    }, function (reason) {
-                        layer.alert(reason, {title: '删除失败'})
-                    })
-                });
-            }
-        });
 
     });
 </script>
