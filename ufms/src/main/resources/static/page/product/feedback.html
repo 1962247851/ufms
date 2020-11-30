@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>产品名称</title>
+    <title>产品反馈首页</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -93,12 +93,13 @@
             let userName = window.UTIL.getUrlParam("uname");
             let userAvatar = window.UTIL.getUrlParam("uavatar");
             let properties = {
+                isReplies: false,
+                isUserDetail: false,
                 productId: productId,
                 userUuid: userUuid,
                 userName: userName,
                 userAvatar: userAvatar,
             }
-            console.log("properties", properties)
             if (productId !== null && productId > 0) {
                 $.ajax({
                     type: "GET", url: window.API.PRODUCT.FIND + productId,
@@ -159,7 +160,7 @@
 
                 })
                 $("#buttonNewFeedback").on("click", () => {
-                    window.open(window.UTIL.getFullNewProductFeedbackPath(productId ), "_blank")
+                    window.open(window.UTIL.getFullNewProductFeedbackPath(productId), "_blank")
                 })
 
                 $(document).on('click', 'i.iconButton', function () {
@@ -180,6 +181,7 @@
                             }
                         })
                     } else if (type === "reply") {
+                        //ignore
                     } else {
                         switch (type) {
                             case "top":

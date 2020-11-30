@@ -57,10 +57,10 @@
             </div>
             <div class="layui-form-item">
                 <label class="layui-form-label">反馈附图</label>
-                <div class="layui-input-inline">
+                <div class="layui-input-block">
                     <!--zyupload反馈附图文件上传-->
                     <div id="zyupload" class="zyupload">
-                        <div id="bottomToolbar" style="margin-top: 254px;padding-bottom:  20px">
+                        <div id="bottomToolbar" style="margin-top: 254px;padding-bottom:  20px;text-align: right">
                             <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
                             <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>
                         </div>
@@ -96,6 +96,40 @@
             //图片对应的data-index，zyupload中定义的，删除图片只是设置了display=none
             picturesIndex = [];
 
+        function submitFeedback(data, productId, userUuid, userName, userAvatar) {
+            let field = data.field;
+            field.uuid = uuid
+            field.product = {id: productId}
+            field.userUuid = userUuid
+            field.userName = userName
+            field.userAvatar = userAvatar
+            if (pictures.length !== 0) {
+                field.pictures = JSON.stringify(pictures)
+            }
+            console.log(field)
+            $.ajax({
+                type: "PUT",
+                url: window.API.FEEDBACK.INSERT,
+                data: JSON.stringify(field),
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8"
+                },
+                dataType: "json",
+                success: () => {
+                    layer.msg("反馈提交成功！")
+                    for (let i = 0; i < picturesIndex.length; i++) {
+                        ZYFILE.funDeleteFile(picturesIndex[i], true)
+                    }
+                    picturesIndex = []
+                    uuid = window.UTIL.uuid()
+                    $("#uploadForm").attr("uuid", uuid)
+                    $("#textarea_length").text(0)
+                    $("#formFeedback")[0].reset();
+                    form.render()
+                }
+            })
+        }
+
         $(() => {
             let productId = window.UTIL.getUrlParam("pid");
             let userUuid = window.UTIL.getUrlParam("uid");
@@ -107,12 +141,13 @@
                     success: (response) => {
                         if (response.success) {
                             product = response.data
-                            document.title += "——" + product.name
+                            // document.title += "——" + product.name
+                            document.title = product.name
                             $("#bottomToolbar")[0].style.marginTop = '0'
                             // 初始化文件上传插件
                             $("#zyupload").zyUpload({
-                                width: "685px",                                                 // 宽度
-                                height: "200px",                                                // 高度
+                                width: "100%",                                                  // 宽度
+                                height: "auto",                                                 // 高度
                                 itemWidth: "140px",                                             // 文件项的宽度
                                 itemHeight: "115px",                                            // 文件项的高度
                                 url: window.API.FILE.UPLOAD + "?type=feedback",                 // 上传文件的路径
@@ -129,6 +164,9 @@
                                     console.info(selectFiles);
                                     console.info("还没上传的全部文件");
                                     console.info(allFiles);
+                                    for (let i = 0; i < selectFiles.length; i++) {
+                                        picturesIndex.push(selectFiles[i].index)
+                                    }
                                 },
                                 onDelete: function (file, files) {              // 删除一个文件的回调方法 file:当前删除的文件  files:删除之后的文件
                                     console.info("当前删除了此文件：");
@@ -143,7 +181,7 @@
                                     // let res = JSON.parse(response)
                                     console.info("此文件上传成功：", file);
                                     // $("#uploadInf").append("<p>上传成功，文件地址是：" + window.UTIL.getFileFullPath(uuid, res.data, 'feedback') + "</p>");
-                                    picturesIndex.push(file.index)
+                                    // picturesIndex.push(file.index)
                                     pictures.push(file.name)
                                     console.log("pictures", pictures)
                                 },
@@ -152,7 +190,6 @@
                                     console.info(file.name);
                                 },
                                 onComplete: function (response) {           	  // 上传完成的回调方法
-                                    layer.msg("文件上传完成")
                                     console.info("文件上传完成");
                                     console.info(response);
                                 }
@@ -177,39 +214,15 @@
                             $("#backHome").attr("href", window.UTIL.getFullProductFeedbackPath(productId))
                             //监听提交
                             form.on('submit(submit)', function (data) {
-                                let field = data.field;
-                                field.uuid = uuid
-                                field.product = {id: productId}
-                                field.userUuid = userUuid
-                                field.userName = userName
-                                field.userAvatar = userAvatar
-                                if (pictures.length !== 0) {
-                                    field.pictures = JSON.stringify(pictures)
+                                //已选择的pictureIndex长度大于已上传的pictures长度，表示有图片未上传
+                                if (picturesIndex.length !== pictures.length) {
+                                    layer.confirm('有图片未上传，确定立即提交？', {icon: 7, title: '注意'}, function (index) {
+                                        layer.close(index);
+                                        submitFeedback(data, productId, userUuid, userName, userAvatar);
+                                    });
+                                } else {
+                                    submitFeedback(data, productId, userUuid, userName, userAvatar);
                                 }
-                                console.log(field)
-
-                                $.ajax({
-                                    type: "PUT",
-                                    url: window.API.FEEDBACK.INSERT,
-                                    data: JSON.stringify(field),
-                                    headers: {
-                                        "Content-Type": "application/json;charset=utf-8"
-                                    },
-                                    dataType: "json",
-                                    success: () => {
-                                        layer.msg("反馈提交成功！")
-                                        for (let i = 0; i < picturesIndex.length; i++) {
-                                            ZYFILE.funDeleteFile(picturesIndex[i], true)
-                                        }
-                                        picturesIndex = []
-                                        uuid = window.UTIL.uuid()
-                                        $("#uploadForm").attr("uuid", uuid)
-                                        $("#textarea_length").text(0)
-                                        $("#formFeedback")[0].reset();
-                                        form.render()
-                                    }
-                                })
-
                                 return false;
                             });
                         } else {

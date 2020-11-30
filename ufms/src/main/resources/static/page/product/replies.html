@@ -34,13 +34,13 @@
     </span>
     <!--头部的反馈-->
     <ul style="margin-top: 20px" id="originalFeedback"></ul>
-    <div style="margin-top: 10px">
+    <div id="reply" style="margin-top: 10px">
         <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
-            <legend>评论<span id="repliesTitleCnt" style="margin-left: 5px;"></span></legend>
+            <legend><a href="#reply">评论<span id="repliesTitleCnt" style="margin-left: 5px;"></span></a></legend>
         </fieldset>
         <div class="layui-card" style="margin: 10px;">
             <form class="layui-form" action="" id="formFeedback">
-                <div class="layui-card-body" style="padding-bottom: 0">
+                <div class="layui-card-body">
                     <div class="layui-form-item layui-form-text" style="margin-bottom: 0;">
                         <div style="width: 30px;float: left">
                             <div id="avatarDefault" class="avatar-container" style="float: left;display: none">
@@ -53,22 +53,18 @@
                         <div style="margin-left: 45px">
                                 <textarea name="content" class="layui-textarea" id="area" maxlength="500"
                                           placeholder="别害羞，快来说两句吧" lay-verify="required"></textarea>
-                            <div style="margin-top: 10px;margin-right: 8px; text-align: left;">
+                            <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
                                 <span id="textarea_length">0</span> / <span class="num_count">500</span>
                             </div>
-                            <div class="layui-form-item">
-                                <div class="layui-input-inline">
-                                    <!--zyupload反馈附图文件上传-->
-                                    <div id="zyupload" class="zyupload"></div>
-                                </div>
+                            <div class="layui-form-item" style="margin-bottom: 0">
+                                <!--zyupload反馈附图文件上传-->
+                                <div id="zyupload" class="zyupload"></div>
                             </div>
-                            <div class="layui-card-header" style="padding-bottom: 10px;">
-                                <div class="layui-form-item">
-                                    <div class="layui-input-block" style="text-align: right">
-                                        <button class="layui-btn" lay-submit lay-filter="submit">评论</button>
-                                        <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置
-                                        </button>
-                                    </div>
+                            <div>
+                                <div class="layui-form-item" style="text-align: right;margin-bottom: 0;">
+                                    <button class="layui-btn" lay-submit lay-filter="submit">评论</button>
+                                    <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -105,7 +101,11 @@
             //图片列表，要转换为json
             pictures = [],
             //图片对应的data-index，zyupload中定义的，删除图片只是设置了display=none
-            picturesIndex = [];
+            picturesIndex = [],
+            //被回复的反馈
+            parentFeedbackId = null,
+            parentFeedbackUserUuid = null,
+            parentFeedbackUserName = null;
 
         $(() => {
             let product, original = null;
@@ -140,7 +140,8 @@
                     success: (response) => {
                         if (response.success) {
                             product = response.data
-                            document.title += "——" + product.name
+                            // document.title += "——" + product.name
+                            document.title = product.name
                             $.ajax({
                                 type: "GET", url: window.API.FEEDBACK.FIND + originalId,
                                 success: (response) => {
@@ -176,11 +177,14 @@
                                                     }
                                                 }
                                             )
-                                            $("#buttonReset").on("click", () => $("#textarea_length").text(0))
+                                            //重置
+                                            $("#buttonReset").on("click", () => {
+                                                reset();
+                                            })
                                             // 初始化文件上传插件
                                             $("#zyupload").zyUpload({
-                                                width: "685px",                                                 // 宽度
-                                                height: "200px",                                                // 高度
+                                                width: "100%",                                                  // 宽度
+                                                height: "auto",                                                 // 高度
                                                 itemWidth: "140px",                                             // 文件项的宽度
                                                 itemHeight: "115px",                                            // 文件项的高度
                                                 url: window.API.FILE.UPLOAD + "?type=feedback",    // 上传文件的路径
@@ -197,6 +201,9 @@
                                                     console.info(selectFiles);
                                                     console.info("还没上传的全部文件");
                                                     console.info(allFiles);
+                                                    for (let i = 0; i < selectFiles.length; i++) {
+                                                        picturesIndex.push(selectFiles[i].index)
+                                                    }
                                                 },
                                                 onDelete: function (file, files) {              // 删除一个文件的回调方法 file:当前删除的文件  files:删除之后的文件
                                                     console.info("当前删除了此文件：");
@@ -211,7 +218,7 @@
                                                     // let res = JSON.parse(response)
                                                     console.info("此文件上传成功：", file);
                                                     // $("#uploadInf").append("<p>上传成功，文件地址是：" + window.UTIL.getFileFullPath(uuid, res.data, 'feedback') + "</p>");
-                                                    picturesIndex.push(file.index)
+                                                    // picturesIndex.push(file.index)
                                                     pictures.push(file.name)
                                                     console.log("pictures", pictures)
                                                 },
@@ -227,50 +234,16 @@
                                             $("#uploadForm").attr("uuid", uuid)
                                             //监听提交
                                             form.on('submit(submit)', function (data) {
-                                                let field = data.field;
-                                                field.uuid = uuid
-                                                field.product = {id: productId}
-                                                field.original = {id: originalId}
-                                                if (pictures.length !== 0) {
-                                                    field.pictures = JSON.stringify(pictures)
+                                                //已选择的pictureIndex长度大于已上传的pictures长度，表示有图片未上传
+                                                if (picturesIndex.length !== pictures.length) {
+                                                    layer.confirm('有图片未上传，确定立即提交？', {icon: 7, title: '注意'},
+                                                        function (index) {
+                                                            layer.close(index);
+                                                            submitFeedback(data, productId, originalId, userUuid, userName, userAvatar);
+                                                        });
+                                                } else {
+                                                    submitFeedback(data, productId, originalId, userUuid, userName, userAvatar);
                                                 }
-                                                field.userUuid = userUuid
-                                                field.userName = userName
-                                                field.userAvatar = userAvatar
-                                                console.log(field)
-
-                                                $.ajax({
-                                                    type: "PUT",
-                                                    url: window.API.FEEDBACK.INSERT,
-                                                    data: JSON.stringify(field),
-                                                    headers: {
-                                                        "Content-Type": "application/json;charset=utf-8"
-                                                    },
-                                                    dataType: "json",
-                                                    success: (res) => {
-                                                        layer.msg("评论成功")
-                                                        $("#flows").prepend(
-                                                            window.UTIL.generateFlowItem(res.data, {
-                                                                productId: productId,
-                                                                isReplies: true,
-                                                                userUuid: userUuid,
-                                                                userName: userName,
-                                                                userAvatar: userAvatar
-                                                            }).replaceAll('lay-src="', 'src="')
-                                                        )
-                                                        for (let i = 0; i < picturesIndex.length; i++) {
-                                                            ZYFILE.funDeleteFile(picturesIndex[i], true)
-                                                        }
-                                                        picturesIndex = []
-                                                        uuid = window.UTIL.uuid()
-                                                        $("#uploadForm").attr("uuid", uuid)
-                                                        let $repliesTitleCnt = $("#repliesTitleCnt");
-                                                        $repliesTitleCnt.text($repliesTitleCnt[0].innerText === '' ? 1 : parseInt($repliesTitleCnt[0].innerText) + 1)
-                                                        $("#textarea_length").text(0)
-                                                        $("#formFeedback")[0].reset();
-                                                        form.render()
-                                                    }
-                                                })
                                                 return false;
                                             });
                                         }
@@ -340,6 +313,14 @@
                             }
                         })
                     } else if (type === "reply") {
+                        let parentUserName = icon.parent().parent().parent().parent().find(".layui-card-header").find("a").text();
+                        let parentUserUuid = window.UTIL.getUrlParamByUrl("suid", icon.parent().parent().parent().parent().find(".layui-card-header").find("a").attr("href"));
+                        console.log(parentUserName)
+                        parentFeedbackId = feedbackId
+                        parentFeedbackUserUuid = parentUserUuid
+                        parentFeedbackUserName = parentUserName
+                        $("#area").attr("placeholder", "回复：" + parentUserName)
+                        // layer.msg("回复pid=" + productId + ",fid=" + feedbackId + ",oid=" + originalId)
                     } else {
                         switch (type) {
                             case "top":
@@ -374,6 +355,75 @@
                 window.location.replace("/page/404.html")
             }
         })
+
+        function submitFeedback(data, productId, originalId, userUuid, userName, userAvatar) {
+            let field = data.field;
+            field.uuid = uuid
+            field.product = {id: productId}
+            field.original = {id: originalId}
+            if (pictures.length !== 0) {
+                field.pictures = JSON.stringify(pictures)
+            }
+            field.userUuid = userUuid
+            field.userName = userName
+            field.userAvatar = userAvatar
+            if (parentFeedbackId !== null) {
+                field.parent = {
+                    id: parentFeedbackId,
+                    userUuid: parentFeedbackUserUuid,
+                    userName: parentFeedbackUserName
+                }
+            }
+            console.log(field)
+
+            $.ajax({
+                type: "PUT",
+                url: window.API.FEEDBACK.INSERT,
+                data: JSON.stringify(field),
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8"
+                },
+                dataType: "json",
+                success: (res) => {
+                    layer.msg("评论成功")
+                    $("#flows").prepend(
+                        window.UTIL.generateFlowItem(res.data, {
+                            isReplies: true,
+                            isUserDetail: false,
+                            productId: productId,
+                            userUuid: userUuid,
+                            userName: userName,
+                            userAvatar: userAvatar
+                        }).replaceAll('lay-src="', 'src="')
+                    )
+                    reset()
+                    uuid = window.UTIL.uuid()
+                    $("#uploadForm").attr("uuid", uuid)
+                    let $repliesTitleCnt = $("#repliesTitleCnt");
+                    $repliesTitleCnt.text($repliesTitleCnt[0].innerText === '' ? 1 : parseInt($repliesTitleCnt[0].innerText) + 1)
+                    $("#formFeedback")[0].reset();
+                    form.render()
+                }
+            })
+        }
+
+        function reset() {
+            $("#area").attr("placeholder", "别害羞，快来说两句吧")
+            if (parentFeedbackId !== null) {
+                parentFeedbackId = null
+            }
+            if (parentFeedbackUserName !== null) {
+                parentFeedbackUserName = null
+            }
+            if (parentFeedbackUserUuid !== null) {
+                parentFeedbackUserUuid = null
+            }
+            $("#textarea_length").text(0)
+            for (let i = 0; i < picturesIndex.length; i++) {
+                ZYFILE.funDeleteFile(picturesIndex[i], true)
+            }
+            picturesIndex = []
+        }
 
     })
 

@@ -101,7 +101,8 @@
                                                 }
                                                 layui.each(res.data.content, function (index, item) {
                                                     lis.push(window.UTIL.generateFlowItem(item, {
-                                                        // isReplies: true,
+                                                        isReplies: false,
+                                                        isUserDetail: true,
                                                         productId: productId,
                                                         originalId: originalId,
                                                         userUuid: userUuid,

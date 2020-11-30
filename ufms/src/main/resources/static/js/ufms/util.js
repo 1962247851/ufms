@@ -343,7 +343,7 @@ function generateFlowItemPictures(uuid, pictures) {
 function generateFlowItem(item, properties) {
     let productId = properties.productId
     //主贴或者回复详情页面
-    if (item.original === undefined || item.original === null || properties.isReplies) {
+    if (item.original === undefined || item.original === null || properties.isReplies || properties.isUserDetail) {
         //设置originalId
         properties.originalId = item.id
         let str = ''
@@ -351,8 +351,7 @@ function generateFlowItem(item, properties) {
             '<div class="layui-card" style="margin: 10px;">' +
             '<div class="bottom-toolbar-controller">' +
             '<div class="layui-card-header">' +
-            '<div class="layui-row">' +
-            '<div class="layui-col-lg10 layui-col-md10 layui-col-sm9 layui-col-xs9 avatar">';
+            '<div>'
         //用户头像
         if (item.userAvatar === null) {
             str += '<div class="avatar-container">' +
@@ -371,7 +370,7 @@ function generateFlowItem(item, properties) {
         str += ';margin-left: 5px" href="' + getFullUserFeedbackPath(productId, item.userUuid) + '">' + item.userName + '</a>' +
             '<span style="margin-left: 5px; font-size: small" >' + timeAgo(item.createdDate) + '</span>' +
             '</div>' +
-            '<div class="layui-col-lg2 layui-col-md2 layui-col-sm3 layui-col-xs3" style="text-align: right">';
+            '<div style="text-align: right">';
         if (item.isLocked) {
             str += '<span class="label label-lock">已锁定</span>'
         }
@@ -382,7 +381,6 @@ function generateFlowItem(item, properties) {
             str += '<span class="label">置顶</span>'
         }
         str += '</div>' +
-            '</div>' +
             '</div>' +
             '<div class="layui-card-body">';
         if (item.parent !== null) {
@@ -414,14 +412,29 @@ function generateFlowItem(item, properties) {
             }
         }
         if (!properties.isReplies) {
+            let originalIdTemp = properties.originalId;
+            if (item.original !== null) {
+                originalIdTemp = item.original.id
+            }
             //反馈详情
-            str += '<a target="_blank" href="' + getFullProductFeedbackRepliesPath(productId, properties.originalId) + '"><i class="iconButton fa fa-file-text-o" type="detail" pid="' + productId + '" fid="' + item.id + '"/></a>';
+            str += '<a target="_blank" href="' + getFullProductFeedbackRepliesPath(productId, originalIdTemp) + '"><i class="iconButton fa fa-file-text-o" type="detail" pid="' + productId + '" fid="' + item.id + '"/></a>';
         }
         //点赞次数
         str += '</div><i class="iconButton fa fa-thumbs-o-up" type="like" pid="' + productId + '" fid="' + item.id + '">';
         str += "<span style='font-size: 14px;margin-left: 3px;'>" + (item.likeCount === 0 ? '' : item.likeCount) + "</span>";
-        str += '</i><i class="iconButton fa fa-reply" type="reply" pid="' + productId + '" fid="' + item.id + '" style="margin-left: 6px"/>' +
-            '</div>' +
+        str += '</i>';
+        //回复按钮
+        if ((!properties.isReplies || (item.original !== undefined && item.original !== null)) && !properties.isUserDetail) {
+            //要判断是不是主贴，主贴不显示回复按钮
+            let target = "_blank"
+            let feedbackId = properties.originalId
+            if (item.original !== undefined && item.original !== null) {
+                target = "_self"
+                feedbackId = item.original.id
+            }
+            str += '<a target="' + target + '" href="' + getFullProductFeedbackRepliesPath(productId, feedbackId) + '#reply" style="color: #333;"><i class="iconButton fa fa-reply" type="reply" pid="' + productId + '" fid="' + item.id + '" style="margin-left: 6px"/></a>';
+        }
+        str += '</div>' +
             '</div>' +
             '</div>';
         //回复
@@ -482,8 +495,18 @@ function getAllUrlParams() {
  * @returns {string|null} value
  */
 function getUrlParam(name) {
+    return getUrlParamByUrl(name, window.location.search)
+}
+
+/**
+ * 根据name获取url中的value
+ * @param name key
+ * @param url url
+ * @returns {string|null} value
+ */
+function getUrlParamByUrl(name, url) {
     let reg = new RegExp("(^|&)" + decodeURIComponent(name) + "=([^&]*)(&|$)");
-    let r = window.location.search.substr(1).match(reg);
+    let r = url.substr(1).match(reg);
     if (r != null) return decodeURIComponent(r[2]);
     return null;
 }
@@ -555,6 +578,7 @@ export const UTIL = {
     getAllUrlParams: getAllUrlParams,
     getFullNewProductFeedbackPath: getFullNewProductFeedbackPath,
     getSessionStorageUser: getSessionStorageUser,
+    getUrlParamByUrl: getUrlParamByUrl,
 };
 
 export default {

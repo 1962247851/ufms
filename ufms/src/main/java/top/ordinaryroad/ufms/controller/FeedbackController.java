@@ -52,6 +52,9 @@ public class FeedbackController extends BaseUserController implements ForeignKey
         if (jsonResult != null) {
             return jsonResult;
         }
+        if (StringUtil.isNullOrEmpty(entity.getUuid())) {
+            entity.setUuid(IdUtils.fastSimpleUUID());
+        }
         //主贴判断
         UfmsFeedback original = entity.getOriginal();
         if (original != null) {
@@ -65,16 +68,12 @@ public class FeedbackController extends BaseUserController implements ForeignKey
             }
         }
         entity.setProduct(productService.find(entity.getProduct().getId()));
-        if (StringUtil.isNullOrEmpty(entity.getUuid())) {
-            entity.setUuid(IdUtils.fastSimpleUUID());
-        }
         //获取已登录的user
         SysUser user;
         try {
             user = getUser();
         } catch (UserNotLoginException e) {
             user = null;
-            e.printStackTrace();
         }
         if (entity.getProduct().getUser().equals(user)) {
             entity.setIsAdmin(true);
