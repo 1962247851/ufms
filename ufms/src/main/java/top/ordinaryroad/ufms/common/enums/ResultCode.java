@@ -28,6 +28,10 @@ public enum ResultCode {
     PRODUCT_ID_NOT_NULL(1009, "产品不能为空"),
     FEEDBACK_ID_NOT_NULL(1010, "反馈不能为空"),
     USER_ID_NOT_NULL(1011, "用户不能为空"),
+    NEW_OLD_PASSWORD_CANNOT_EQUAL(1012, "新密码不能与旧密码相同"),
+    ID_NOT_COMPLETE(1013, "ID不能为空"),
+    USERNAME_NOT_COMPLETE(1014, "用户名不能为空"),
+    PASSWORD_NOT_COMPLETE(1015, "密码不能为空"),
 
     /* 用户错误：2001～2999 */
     USER_NOT_LOGIN(2001, "用户未登录"),
@@ -60,6 +64,7 @@ public enum ResultCode {
     ONLY_MAIN_FEEDBACK_CAN_BE_TOPPED(4014, "只有主贴才可以置顶"),
     ORIGINAL_FEEDBACK_LOCKED(4015, "主贴被锁定"),
     ORIGINAL_FEEDBACK_NOT_EXIST(4016, "主贴不存在"),
+    EMAIL_ALREADY_EXIST(4017, "该邮箱地址已被注册"),
     ;
 
     private Integer code;

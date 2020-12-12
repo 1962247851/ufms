@@ -3,6 +3,7 @@ package top.ordinaryroad.ufms.entity;
 import io.netty.util.internal.StringUtil;
 import lombok.*;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import top.ordinaryroad.ufms.common.entity.JsonResult;
 import top.ordinaryroad.ufms.common.entity.MyJsonStringObject;
@@ -12,6 +13,7 @@ import top.ordinaryroad.ufms.service.UfmsProductService;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 /**
  * 产品实体类
@@ -73,6 +75,13 @@ public class UfmsProduct extends MyJsonStringObject {
     @Nullable
     private String website;
     /**
+     * 产品创建时间
+     */
+    @CreatedDate
+    @Column(nullable = false)
+    @NotNull
+    private Date createdDate;
+    /**
      * 产品密钥，验证API接口等
      */
     @Column(unique = true)
@@ -98,7 +107,7 @@ public class UfmsProduct extends MyJsonStringObject {
             if (productService.findByName(getName()) != null) {
                 return ResultTool.fail(ResultCode.NAME_ALREADY_EXIST);
             }
-            if (!StringUtil.isNullOrEmpty(getWebsite())) {
+            if (getWebsite() != null) {
                 if (productService.findByWebsite(getWebsite()) != null) {
                     return ResultTool.fail(ResultCode.WEBSITE_ALREADY_EXIST);
                 }

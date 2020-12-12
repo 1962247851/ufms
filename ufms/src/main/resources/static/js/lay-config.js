@@ -23,6 +23,7 @@ layui.config({
     tableSelect: 'tableSelect/tableSelect', // table选择扩展
     iconPickerFa: 'iconPicker/iconPickerFa', // fa图标选择扩展
     echarts: 'echarts/echarts', // echarts图表扩展
+    echartsWordCloud: 'echarts/echarts-wordcloud', // echartsWordCloud图表扩展
     echartsTheme: 'echarts/echartsTheme', // echarts图表主题扩展
     wangEditor: 'wangEditor/wangEditor', // wangEditor富文本扩展
     layarea: 'layarea/layarea', //  省市县区三级联动下拉选择器
@@ -33,7 +34,9 @@ layui.config({
     //加载中对话框index，用于close
     let loadIndex;
     $.ajaxSetup({
+        crossDomain: true,
         beforeSend: () => {
+            // xhr.withCredentials = true;
             loadIndex = layer.load();
         },
         dataFilter: function (data, type) {

@@ -35,35 +35,40 @@
                 </div>
                 <div class="layui-card-body">
                     <div>
-                        <span>URL（点击复制）：</span><span style="cursor: pointer" id="feedbackHome">https://localhost:1116/page/product/feedback.html?pid=</span>
+                        <span>URL（点击复制）：</span><span style="cursor: pointer" id="feedbackHome"></span>
                     </div>
                     <table class="layui-table">
                         <thead>
                         <tr>
                             <th>参数</th>
+                            <th>类型</th>
                             <th>说明</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr class="requiredTr">
                             <td>pid</td>
+                            <td>Long</td>
                             <td>产品ID（必选）</td>
                         </tr>
                         <tr>
                             <td>uid</td>
-                            <td>用户ID，由开发者自行维护，不传入则表示随机生成</td>
+                            <td>String</td>
+                            <td>用户ID，由开发者自行维护，必须为UUID，不传入则表示随机生成</td>
                         </tr>
                         <tr>
                             <td>uname</td>
+                            <td>String</td>
                             <td>用户名，由开发者自行维护，不传入则表示随机生成</td>
                         </tr>
                         <tr>
                             <td>uavatar</td>
-                            <td>用户头像url，由开发者自行维护，不传入则为空</td>
+                            <td>String</td>
+                            <td>用户头像url，由开发者自行维护，不传入则一直为空，即使以后传入也不会生效</td>
                         </tr>
                         </tbody>
                     </table>
-                    <p style="font-weight: bold">注意：<br>uid、uname、uavatar三者必须同时传入，否则自定义登录态会构建失败</p>
+                    <p style="font-weight: bold">注意：<br>uid、uname两者必须同时传入，否则自定义登录态会构建失败</p>
                 </div>
             </div>
         </div>
@@ -83,29 +88,34 @@
                         <thead>
                         <tr>
                             <th>参数</th>
+                            <th>类型</th>
                             <th>说明</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr class="requiredTr">
                             <td>pid</td>
+                            <td>Long</td>
                             <td>产品ID（必选）</td>
                         </tr>
                         <tr>
                             <td>uid</td>
-                            <td>用户ID，由开发者自行维护，不传入则表示随机生成</td>
+                            <td>String</td>
+                            <td>用户ID，由开发者自行维护，必须为UUID，不传入则表示随机生成</td>
                         </tr>
                         <tr>
                             <td>uname</td>
+                            <td>String</td>
                             <td>用户名，由开发者自行维护，不传入则表示随机生成</td>
                         </tr>
                         <tr>
                             <td>uavatar</td>
-                            <td>用户头像url，由开发者自行维护，不传入则为空</td>
+                            <td>String</td>
+                            <td>用户头像url，由开发者自行维护，不传入则一直为空，即使以后传入也不会生效</td>
                         </tr>
                         </tbody>
                     </table>
-                    <p style="font-weight: bold">注意：<br>uid、uname、uavatar三者必须同时传入，否则自定义登录态会构建失败</p>
+                    <p style="font-weight: bold">注意：<br>uid、uname两者必须同时传入，否则自定义登录态会构建失败</p>
                 </div>
             </div>
         </div>
@@ -163,8 +173,8 @@
             })
 
             function init() {
-                $("#feedbackHome").html("https://localhost:1116/page/product/feedback.html?pid=" + window.UTIL.getCurrentProduct().id)
-                $("#newFeedback").html("https://localhost:1116/page/product/new-feedback.html?pid=" + window.UTIL.getCurrentProduct().id)
+                $("#feedbackHome").html(window.API.API_BASE_HOST + "/page/product/feedback.html?pid=" + window.UTIL.getCurrentProduct().id)
+                $("#newFeedback").html(window.API.API_BASE_HOST + "/page/product/new-feedback.html?pid=" + window.UTIL.getCurrentProduct().id)
             }
         }
     );

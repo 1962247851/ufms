@@ -13,10 +13,10 @@ import top.ordinaryroad.ufms.common.utils.ResultTool;
 import top.ordinaryroad.ufms.entity.SysUser;
 import top.ordinaryroad.ufms.entity.UfmsFeedback;
 import top.ordinaryroad.ufms.exception.UserNotLoginException;
+import top.ordinaryroad.ufms.service.SysUserService;
 import top.ordinaryroad.ufms.service.UfmsFeedbackService;
 import top.ordinaryroad.ufms.service.UfmsProductService;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 
@@ -33,11 +33,12 @@ public class FeedbackController extends BaseUserController implements ForeignKey
 
     private final UfmsFeedbackService feedbackService;
     private final UfmsProductService productService;
+    private final SysUserService userService;
 
-    public FeedbackController(UfmsFeedbackService feedbackService, UfmsProductService productService, HttpSession session) {
-        this.session = session;
+    public FeedbackController(UfmsFeedbackService feedbackService, UfmsProductService productService, SysUserService userService) {
         this.feedbackService = feedbackService;
         this.productService = productService;
+        this.userService = userService;
     }
 
     /**
@@ -77,15 +78,17 @@ public class FeedbackController extends BaseUserController implements ForeignKey
         }
         if (entity.getProduct().getUser().equals(user)) {
             entity.setIsAdmin(true);
-            entity.setUserUuid(user.getUuid());
-            entity.setUserName(user.getName());
-            entity.setUserAvatar(user.getAvatar());
+            entity.setUser(userService.selectByUuid(user.getUuid()));
         } else {
-            if (StringUtil.isNullOrEmpty(entity.getUserUuid()) || StringUtil.isNullOrEmpty(entity.getUserName()) || StringUtil.isNullOrEmpty(entity.getUserAvatar())) {
-                entity.setUserUuid(IdUtils.fastSimpleUUID());
-                entity.setUserName(new KCNamer().getRandomName());
-                entity.setUserAvatar(null);
-                entity.setIsAdmin(false);
+            entity.setIsAdmin(false);
+            SysUser entityUser = entity.getUser();
+            if (entityUser == null || StringUtil.isNullOrEmpty(entityUser.getUuid()) || StringUtil.isNullOrEmpty(entityUser.getUsername())) {
+                entity.setUser(new SysUser(IdUtils.fastSimpleUUID(), new KCNamer().getRandomName(), null));
+            } else {
+                if (userService.selectByUuid(entityUser.getUuid()) == null) {
+                    userService.insert(entityUser);
+                }
+                entity.setUser(userService.selectByUuid(entityUser.getUuid()));
             }
         }
         return ResultTool.success(feedbackService.insert(entity));
@@ -120,7 +123,7 @@ public class FeedbackController extends BaseUserController implements ForeignKey
         if (jsonResult != null) {
             return jsonResult;
         }
-        return null;
+        return ResultTool.success(feedbackService.update(entity));
     }
 
     /**

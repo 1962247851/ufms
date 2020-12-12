@@ -16,7 +16,6 @@ import top.ordinaryroad.ufms.common.utils.ResultTool;
 import top.ordinaryroad.ufms.entity.UfmsProduct;
 import top.ordinaryroad.ufms.service.UfmsProductService;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 
@@ -33,9 +32,8 @@ public class ProductController extends BaseUserController implements AbstractCru
 
     private final UfmsProductService productService;
 
-    public ProductController(UfmsProductService service, HttpSession session) {
+    public ProductController(UfmsProductService service) {
         this.productService = service;
-        this.session = session;
     }
 
     /**
@@ -46,12 +44,10 @@ public class ProductController extends BaseUserController implements AbstractCru
      */
     @Override
     public JsonResult<?> insert(@RequestBody UfmsProduct entity) {
-
         JsonResult<?> jsonResult = entity.checkValid(productService, true);
         if (jsonResult != null) {
             return jsonResult;
         }
-
 
         if (StringUtils.isEmpty(entity.getUuid())) {
             entity.setUuid(IdUtils.fastSimpleUUID());
@@ -126,7 +122,7 @@ public class ProductController extends BaseUserController implements AbstractCru
      */
     @Override
     public JsonResult<?> findAll(@RequestParam Map<String, Object> requestParams) {
-        requestParams.put("userId", (getUser()).getId());
+        requestParams.put("userId", getUser().getId());
         Page<UfmsProduct> productPage = productService.findAll(requestParams);
         return ResultTool.success(productPage);
     }

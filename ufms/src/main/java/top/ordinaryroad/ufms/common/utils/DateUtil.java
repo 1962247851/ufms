@@ -15,6 +15,32 @@ public class DateUtil {
 
     private static Calendar calendar = Calendar.getInstance();
 
+    /**
+     * 获取相对于当前某天的开始时间
+     *
+     * @param amount 负数：过去，正数：将来
+     * @return date
+     */
+    public static Date getDayStartTime(Integer amount) {
+        Calendar calendar = Calendar.getInstance();
+        generateCalender(calendar, 0, 0, 0, 0);
+        calendar.add(Calendar.DATE, amount);
+        return calendar.getTime();
+    }
+
+    /**
+     * 获取相对于当前某天的结束时间
+     *
+     * @param amount 负数：过去，正数：将来
+     * @return date
+     */
+    public static Date getDayEndTime(Integer amount) {
+        Calendar calendar = Calendar.getInstance();
+        generateCalender(calendar, 23, 59, 59, 999);
+        calendar.add(Calendar.DATE, amount);
+        return calendar.getTime();
+    }
+
     public static Long getTodayStartTime() {
         Calendar calendar = Calendar.getInstance();
         generateCalender(calendar, 0, 0, 0, 0);

@@ -227,18 +227,18 @@
                 console.log(unescape(redirect))
                 // alert(unescape(redirect))
                 if (redirect === null) {
-                    window.location.replace('/')
+                    window.location.replace('/home.html')
                 } else {
                     window.location.href = unescape(redirect)
                 }
             });
         }
 
-        function login(name, password, code) {
+        function login(username, password, code) {
             $.ajax({
                 type: "POST",
                 url: window.API.USER.LOGIN,
-                data: {name: name, password: password, uuid: uuid, code: code},
+                data: {username: username, password: password, uuid: uuid, code: code},
                 success: function (response) {
                     console.log(response);
                     if (response.success) {

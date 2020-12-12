@@ -6,7 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -113,6 +115,18 @@ public class UfmsProductServiceImpl implements UfmsProductService {
             }
         }
         return dao.findAllByUser(new SysUser(userId), pageRequest);
+    }
+
+    /**
+     * 分页找到所有数据
+     *
+     * @param specification specification
+     * @param pageable      分页
+     * @return 分页的所有数据
+     */
+    @Override
+    public Page<UfmsProduct> findAll(@NotNull Specification<UfmsProduct> specification, @NotNull Pageable pageable) {
+        return dao.findAll(specification, pageable);
     }
 
     /**

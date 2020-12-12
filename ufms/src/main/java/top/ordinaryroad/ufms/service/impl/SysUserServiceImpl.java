@@ -1,5 +1,6 @@
 package top.ordinaryroad.ufms.service.impl;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import top.ordinaryroad.ufms.dao.SysUserDao;
 import top.ordinaryroad.ufms.entity.SysUser;
@@ -82,7 +83,31 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public SysUser selectByUserName(String userName) {
-        return sysUserDao.findByName(userName).orElse(null);
+        return sysUserDao.findByUsername(userName).orElse(null);
+    }
+
+    /**
+     * 根据uuid查询用户
+     *
+     * @param uuid uuid
+     * @return user
+     */
+    @Nullable
+    @Override
+    public SysUser selectByUuid(String uuid) {
+        return sysUserDao.findByUuid(uuid).orElse(null);
+    }
+
+    /**
+     * 根据邮箱查询用户
+     *
+     * @param email email
+     * @return user
+     */
+    @Nullable
+    @Override
+    public SysUser selectByEmail(String email) {
+        return sysUserDao.findByEmail(email).orElse(null);
     }
 
 }

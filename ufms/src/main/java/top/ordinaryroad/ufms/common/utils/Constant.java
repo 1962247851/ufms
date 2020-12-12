@@ -11,7 +11,7 @@ public class Constant {
     /**
      * 上传文件目录类型
      */
-    public static String UPLOAD_FILE_DIRECTORY_TYPE = "product,feedback";
+    public static String UPLOAD_FILE_DIRECTORY_TYPE = "product,feedback,avatar";
 
     public static String getPictureBasePath() {
         if (System.getProperty("os.name").toLowerCase().contains("win")) {

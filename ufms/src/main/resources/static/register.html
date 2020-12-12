@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <title>注册</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="icon" href="./images/favicon.ico">
+    <link rel="stylesheet" href="./lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="./css/public.css" media="all">
+    <link rel="stylesheet" href="./js/lay-module/step-lay/step.css" media="all">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <div class="layui-fluid">
+            <div class="layui-card">
+                <div class="layui-card-body" style="padding-top: 40px;">
+                    <div class="layui-carousel" id="stepForm" lay-filter="stepForm" style="margin: 0 auto;">
+                        <div carousel-item>
+                            <div>
+                                <form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label" for="username">用户名</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" placeholder="请填写用户名" class="layui-input" id="username"
+                                                   name="username" lay-verify="required"/>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label required" for="password">密码</label>
+                                        <div class="layui-input-block">
+                                            <input type="password" name="password" lay-verify="required|password"
+                                                   lay-reqtext="密码不能为空" id="password" placeholder="请输入密码"
+                                                   value="" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label required" for="againPassword">密码</label>
+                                        <div class="layui-input-block">
+                                            <input type="password" name="againPassword" lay-verify="required|password"
+                                                   lay-reqtext="密码不能为空" id="againPassword" placeholder="请重复密码"
+                                                   value="" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <div class="layui-input-block">
+                                            <button class="layui-btn" lay-submit lay-filter="formStep">下一步</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div>
+                                <form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label" for="email">邮箱</label>
+                                        <input type="email" placeholder="请填写邮箱" class="layui-input layui-input-inline"
+                                               id="email" name="email" lay-verify="required|email"/>
+                                        <button type="button" id="buttonGetCode" class="layui-btn layui-inline">获取验证码
+                                        </button>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label" for="code">验证码</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" placeholder="请填写收到的验证码" id="code" name="code"
+                                                   lay-verify="required" class="layui-input" maxlength="4"
+                                                   lay-reqtext="验证码不能为空"/>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <div class="layui-input-block">
+                                            <button type="button" class="layui-btn layui-btn-primary pre">上一步</button>
+                                            <button class="layui-btn" lay-submit lay-filter="register">立即注册</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div>
+                                <div style="text-align: center;margin-top: 90px;">
+                                    <i class="layui-icon layui-circle"
+                                       style="color: white;font-size:30px;font-weight:bold;background: #52C41A;padding: 20px;line-height: 80px;">&#xe605;</i>
+                                    <div style="font-size: 24px;color: #333;font-weight: 500;margin-top: 30px;">
+                                        注册成功
+                                    </div>
+                                    <div style="font-size: 14px;color: #666;margin-top: 20px;">祝您使用愉快</div>
+                                </div>
+                                <div style="text-align: center;margin-top: 50px;">
+                                    <a class="layui-btn" href="/login.html">去登录</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="./lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="./js/lay-config.js?v=1.0.4" charset="utf-8"></script>
+<script type="module" src="./js/my-config.js" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'step', 'layer'], function () {
+        let $ = layui.$,
+            layer = layui.layer,
+            form = layui.form,
+            step = layui.step,
+            //验证码uuid
+            user = {},
+            uuid = null;
+
+        //自定义验证规则
+        form.verify({
+            password: [
+                /^[\S]{6,12}$/,
+                '密码必须6到12位，且不能出现空格'
+            ],
+            email: [
+                /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/,
+                '请输入正确的邮箱地址'
+            ]
+        });
+
+        function generateCode() {
+            user.email = $("#email").val()
+            $.ajax({
+                url: window.API.CAPTCHA.GENERATE_EMAIL_CODE,
+                data: {
+                    email: user.email
+                },
+                success: function (res) {
+                    if (res.success) {
+                        uuid = res.data
+                        layer.msg("验证码获取成功，请尽快填写")
+                    }
+                }
+            })
+        }
+
+        $(() => {
+            step.render({
+                elem: '#stepForm',
+                filter: 'stepForm',
+                width: '100%', //设置容器宽度
+                stepWidth: '750px',
+                height: '550px',
+                stepItems: [{
+                    title: '填写账户信息'
+                }, {
+                    title: '邮箱确认'
+                }, {
+                    title: '注册结果'
+                }]
+            });
+
+            form.on('submit(formStep)', function (data) {
+                let field = data.field;
+                user.username = field.username;
+                user.password = field.password;
+                let againPassword = field.againPassword;
+                if (user.password === againPassword) {
+                    $.ajax({
+                        url: window.API.USER.CHECK_USERNAME,
+                        data: {
+                            username: user.username
+                        },
+                        success: function (res) {
+                            if (res.success) {
+                                if (res.data) {
+                                    step.next('#stepForm');
+                                } else {
+                                    layer.msg("用户名已存在")
+                                }
+                            }
+                        }
+                    })
+                } else {
+                    layer.msg("新旧密码不一致")
+                }
+                return false;
+            });
+
+            form.on('submit(register)', function (data) {
+                $.ajax({
+                    type: "POST",
+                    url: window.API.USER.REGISTER + "?uuid=" + uuid + "&code=" + data.field.code,
+                    headers: {"Content-Type": "application/json;charset=utf-8"},
+                    data: JSON.stringify(user),
+                    success(res) {
+                        if (res.success) {
+                            step.next('#stepForm');
+                        }
+                    }
+                })
+                return false;
+            });
+
+            $('.pre').click(function () {
+                step.pre('#stepForm');
+            });
+
+            $("#buttonGetCode").on('click', function () {
+                generateCode();
+            })
+        })
+    })
+</script>
+</body>
+</html>

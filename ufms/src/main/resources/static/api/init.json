@@ -89,7 +89,29 @@
       "title": "其它管理",
       "icon": "fa fa-slideshare",
       "href": "",
-      "target": "_self"
+      "target": "_self",
+      "child": [
+        {
+          "title": "账号管理",
+          "href": "",
+          "icon": "fa fa-window-maximize",
+          "target": "_self",
+          "child": [
+            {
+              "title": "基本资料",
+              "href": "page/user-setting.html",
+              "icon": "layui-icon layui-icon-app",
+              "target": "_self"
+            },
+            {
+              "title": "密码修改",
+              "href": "page/user-password.html",
+              "icon": "layui-icon layui-icon-app",
+              "target": "_self"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

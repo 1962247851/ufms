@@ -19,12 +19,23 @@
 <body>
 <div class="layuimini-container">
     <div class="layuimini-main">
-
-        <div class="layui-form layuimini-form">
+        <form class="layui-form layuimini-form">
             <div class="layui-form-item">
-                <label class="layui-form-label required" for="name">用户名</label>
+                <label class="layui-form-label">用户头像</label>
+                <div id="uploadUserAvatar" class="layui-upload-drag">
+                    <div id="uploadUserAvatarViewTip" class="layui-hide">
+                        <i class="layui-icon">&#xe67c;</i>
+                        <p>点击上传，或将文件拖拽到此处</p>
+                    </div>
+                    <div id="uploadUserAvatarView" class="layui-hide">
+                        <img src="" alt="上传成功后渲染" style="max-width: 196px">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label required" for=username>用户名</label>
                 <div class="layui-input-block">
-                    <input type="text" name="name" id="name" lay-verify="required" lay-reqtext="用户名不能为空"
+                    <input type="text" name="username" id="username" lay-verify="required" lay-reqtext="用户名不能为空"
                            placeholder="请输入用户名" class="layui-input">
                     <tip>填写自己的用户名。</tip>
                 </div>
@@ -36,6 +47,13 @@
                 </div>
             </div>
             <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="sex" id="sexM" value="true" title="男">
+                    <input type="radio" name="sex" id="sexFm" value="false" title="女">
+                </div>
+            </div>
+            <div class="layui-form-item">
                 <label class="layui-form-label required" for="email">邮箱</label>
                 <div class="layui-input-block">
                     <input type="email" name="email" id="email" lay-verify="required" lay-reqtext="邮箱不能为空"
@@ -43,9 +61,10 @@
                 </div>
             </div>
             <div class="layui-form-item layui-form-text">
-                <label class="layui-form-label">备注信息</label>
+                <label class="layui-form-label" for="remark">备注信息</label>
                 <div class="layui-input-block">
-                    <textarea name="remark" class="layui-textarea" placeholder="请输入备注信息"></textarea>
+                    <textarea name="remark" id="remark" class="layui-textarea" placeholder="请输入备注信息"
+                              maxlength="500"></textarea>
                 </div>
             </div>
 
@@ -54,37 +73,100 @@
                     <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 <script src="../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
 <script src="../js/lay-config.js?v=1.0.4" charset="utf-8"></script>
 <script type="module" src="../js/my-config.js" charset="utf-8"></script>
 <script>
-    layui.use(['form', 'miniTab', 'jquery'], function () {
+    layui.use(['form', 'miniTab', 'jquery', 'upload'], function () {
         let $ = layui.jquery,
             form = layui.form,
             layer = layui.layer,
-            miniTab = layui.miniTab;
+            upload = layui.upload,
+            miniTab = layui.miniTab,
+            avatar = null;
+
+        /**
+         * 初始化用户信息并更新UI
+         */
+        function initUserInfo() {
+            let user = window.UTIL.getSessionStorageUser();
+            let uuid = user.uuid;
+            avatar = user.avatar;
+            $("#username").val(user.username)
+            $("#phone").val(user.phone)
+            $("#email").val(user.email)
+            $("#remark").val(user.remark)
+            if (user.sex) {
+                $("#sexM").prop("checked", true)
+            } else {
+                $("#sexFm").prop("checked", true)
+            }
+            form.render()
+            if (user.avatar === undefined || user.avatar === null || user.avatar === '') {
+                $('#uploadUserAvatarView').addClass('layui-hide')
+                $('#uploadUserAvatarViewTip').removeClass('layui-hide')
+            } else {
+                $('#uploadUserAvatarView').removeClass('layui-hide').find('img').attr('src', user.avatar).attr('alt', user.avatar);
+            }
+            //拖拽上传
+            upload.render({
+                elem: '#uploadUserAvatar',
+                url: window.API.FILE.UPLOAD,
+                data: {
+                    uuid: uuid,
+                    type: "avatar"
+                },
+                done: function (res) {
+                    avatar = window.UTIL.getFileFullPath(uuid, res.data, "avatar")
+                    user.avatar = avatar
+                    $.ajax({
+                        type: "POST",
+                        url: window.API.USER.UPDATE,
+                        data: JSON.stringify(user),
+                        contentType: 'application/json;charset=UTF-8',
+                        success(res) {
+                            if (res.success) {
+                                sessionStorage.setItem("user", JSON.stringify(res.data))
+                                layer.msg('用户头像更新成功');
+                                $('#uploadUserAvatarViewTip').addClass('layui-hide')
+                                $('#uploadUserAvatarView').removeClass('layui-hide').find('img').attr('src', avatar);
+                            }
+                        }
+                    })
+
+
+                }
+            });
+        }
 
         $(() => {
-            let user = window.UTIL.getSessionStorageUser();
-            console.log(user)
-            if (user !== null) {
-                $("#name").val(user.name)
-                $("#phone").val(user.phone)
-                $("#email").val(user.email)
-                //监听提交
-                form.on('submit(saveBtn)', function (data) {
-                    let index = layer.alert(JSON.stringify(data.field), {
-                        title: '最终的提交信息'
-                    }, function () {
-                        layer.close(index);
-                        miniTab.deleteCurrentByIframe();
-                    });
-                    return false;
-                });
-            }
+            initUserInfo();
+            //监听提交
+            form.on('submit(saveBtn)', function (data) {
+                let user = window.UTIL.getSessionStorageUser();
+                user.username = data.field.username
+                user.phone = data.field.phone
+                user.sex = data.field.sex
+                user.email = data.field.email
+                user.remark = data.field.remark
+                user.avatar = avatar
+                $.ajax({
+                    type: "POST",
+                    url: window.API.USER.UPDATE,
+                    data: JSON.stringify(user),
+                    contentType: 'application/json;charset=UTF-8',
+                    success(res) {
+                        if (res.success) {
+                            sessionStorage.setItem("user", JSON.stringify(res.data))
+                            layer.msg("信息更新成功")
+                        }
+                    }
+                })
+                return false;
+            });
         })
     });
 </script>

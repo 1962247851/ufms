@@ -10,9 +10,9 @@ spring:
   # redis 配置
   redis:
     # 地址
-    host: 47.100.91.123
+    host: ${LOCAL_HOST}
     # 端口，默认为6379
-    port: 6379
+    port: ${REDIS_PORT}
     # 密码
     password: ${REDIS_PWD}
     # 连接超时时间
@@ -27,7 +27,23 @@ spring:
         max-active: 8
         # #连接池最大阻塞等待时间（使用负值表示没有限制）
         max-wait: -1ms
-
+  mail:
+    port: 465
+    #邮件协议smtp
+    host: smtp.qq.com
+    #发送者的邮件的用户名
+    username: ${QQ_MAIL_USERNAME}
+    #移动端客户授权码(在邮箱中设置)
+    password: ${QQ_MAIL_PWD}
+    #使用的编码
+    default-encoding: utf-8
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.socketFactory.port: 465
+      mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory
+      mail.smtp.socketFactory.fallback: false
   #thymeleaf模板配置
   thymeleaf:
     cache: false

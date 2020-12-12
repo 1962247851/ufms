@@ -1,9 +1,9 @@
 package top.ordinaryroad.ufms.controller;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import top.ordinaryroad.ufms.config.security.service.UserDetailsServiceImpl;
 import top.ordinaryroad.ufms.entity.SysUser;
 import top.ordinaryroad.ufms.exception.UserNotLoginException;
-
-import javax.servlet.http.HttpSession;
 
 /**
  * 从Session中获取User控制器
@@ -13,13 +13,13 @@ import javax.servlet.http.HttpSession;
  **/
 public class BaseUserController {
 
-    protected HttpSession session;
-
     public SysUser getUser() {
-        Object user = session.getAttribute("user");
-        if (user == null) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println(principal);
+        if (principal == "anonymousUser") {
             throw new UserNotLoginException("用户未登录");
         }
-        return (SysUser) user;
+        UserDetailsServiceImpl.MyUserDetails userDetails = (UserDetailsServiceImpl.MyUserDetails) principal;
+        return userDetails.getSysUser();
     }
 }

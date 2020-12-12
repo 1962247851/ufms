@@ -1,8 +1,6 @@
 package top.ordinaryroad.ufms.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -10,14 +8,20 @@ import io.swagger.annotations.ApiResponses;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import top.ordinaryroad.ufms.common.entity.JsonResult;
+import top.ordinaryroad.ufms.common.enums.ResultCode;
 import top.ordinaryroad.ufms.common.utils.*;
 import top.ordinaryroad.ufms.redis.RedisCache;
+import top.ordinaryroad.ufms.service.MailService;
+import top.ordinaryroad.ufms.service.SysUserService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
 
 /**
  * 验证码操作处理
@@ -26,13 +30,17 @@ import java.util.concurrent.TimeUnit;
  */
 @Api(description = "验证码API接口")
 @RestController
-@RequestMapping("/api/captcha")
+@RequestMapping(value = "/api/captcha", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class CaptchaController {
     private static final Integer CAPTCHA_EXPIRATION = 2;
     private final RedisCache redisCache;
+    private final MailService mailService;
+    private final SysUserService userService;
 
-    public CaptchaController(RedisCache redisCache) {
+    public CaptchaController(RedisCache redisCache, MailService mailService, SysUserService userService) {
         this.redisCache = redisCache;
+        this.mailService = mailService;
+        this.userService = userService;
     }
 
     /**
@@ -43,7 +51,7 @@ public class CaptchaController {
             @ApiResponse(code = 200, message = "成功"),
             @ApiResponse(code = 999, message = "失败")
     })
-    @GetMapping(value = "generate", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "generate")
     public JsonResult<?> getCode() throws IOException {
         // 生成随机字串
         String verifyCode = VerifyCodeUtils.generateVerifyCode(4);
@@ -71,5 +79,25 @@ public class CaptchaController {
             stream.close();
         }
     }
+
+    @ApiOperation(value = "生成邮箱验证码")
+    @GetMapping("generateEmailCode")
+    public JsonResult<?> generateEmailCode(@RequestParam String email) {
+        if (!Pattern.matches("^[A-Za-z0-9\\u4e00-\\u9fa5]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$", email)) {
+            return ResultTool.fail(ResultCode.PARAM_NOT_VALID);
+        }
+        if (userService.selectByEmail(email) != null) {
+            return ResultTool.fail(ResultCode.EMAIL_ALREADY_EXIST);
+        }
+        // 生成随机字串
+        String verifyCode = VerifyCodeUtils.generateVerifyCode(4);
+        // 唯一标识
+        String uuid = IdUtils.simpleUUID();
+        String verifyKey = Constant.CAPTCHA_CODE_KEY + uuid;
+        redisCache.setCacheObject(verifyKey, verifyCode, CAPTCHA_EXPIRATION, TimeUnit.MINUTES);
+        mailService.sendMimeMessage(email, "用户反馈管理系统——邮箱验证", "您正在注册用户反馈管理系统，验证码为：" + verifyCode + "（2分钟内有效）", "text/plain;charset=UTF-8");
+        return ResultTool.success(uuid);
+    }
+
 
 }

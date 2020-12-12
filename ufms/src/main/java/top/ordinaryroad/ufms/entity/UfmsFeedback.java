@@ -129,24 +129,6 @@ public class UfmsFeedback extends MyJsonStringObject {
     @JsonProperty
     private UfmsProduct product;
     /**
-     * 反馈者用户名，开发者下的用户
-     */
-    @NotNull
-    @Column(nullable = false)
-    private String userName;
-    /**
-     * 反馈者唯一标识符，开发者下的用户
-     */
-    @NotNull
-    @Column(nullable = false)
-    private String userUuid;
-    /**
-     * 反馈者头像url
-     */
-    @Nullable
-    @Column(length = 1000)
-    private String userAvatar;
-    /**
      * 当主贴的时候为null，回复也可能为null
      */
     @Nullable
@@ -160,6 +142,12 @@ public class UfmsFeedback extends MyJsonStringObject {
     @OneToOne
     @JsonIgnoreProperties({"replies"})
     private UfmsFeedback original;
+    /**
+     * 反馈者用户，开发者下的用户
+     */
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(referencedColumnName = "uuid")
+    private SysUser user;
 
     public JsonResult<?> checkValid() {
         return checkValid(false);

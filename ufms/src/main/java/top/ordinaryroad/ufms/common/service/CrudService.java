@@ -4,6 +4,8 @@ package top.ordinaryroad.ufms.common.service;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -64,5 +66,14 @@ public interface CrudService<E, K> {
      * @return 分页的所有数据
      */
     Page<E> findAll(@RequestParam Map<String, Object> requestParams);
+
+    /**
+     * 分页找到所有数据
+     *
+     * @param specification specification
+     * @param pageable      分页
+     * @return 分页的所有数据
+     */
+    Page<E> findAll(@NotNull Specification<E> specification, @NotNull Pageable pageable);
 
 }

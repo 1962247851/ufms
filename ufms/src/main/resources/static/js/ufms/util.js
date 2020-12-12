@@ -215,9 +215,11 @@ function getCustomUserInfoPath(properties) {
         return ''
     }
     let path = ''
-    if (properties.userUuid !== null && properties.userName !== null && properties.userAvatar !== null) {
+    if (properties.userUuid !== null && properties.userName !== null) {
         path += "&uid=" + properties.userUuid
         path += "&uname=" + properties.userName
+    }
+    if (properties.userAvatar !== null) {
         path += "&uavatar=" + properties.userAvatar
     }
     return path;
@@ -342,23 +344,24 @@ function generateFlowItemPictures(uuid, pictures) {
  */
 function generateFlowItem(item, properties) {
     let productId = properties.productId
+    let user = item.user;
     //主贴或者回复详情页面
     if (item.original === undefined || item.original === null || properties.isReplies || properties.isUserDetail) {
         //设置originalId
         properties.originalId = item.id
         let str = ''
-        str += '<li>' +
+        str += '<li class="bottom-toolbar-controller">' +
             '<div class="layui-card" style="margin: 10px;">' +
-            '<div class="bottom-toolbar-controller">' +
+            '<div>' +
             '<div class="layui-card-header">' +
             '<div>'
         //用户头像
-        if (item.userAvatar === null) {
+        if (user.avatar === undefined || user.avatar === null) {
             str += '<div class="avatar-container">' +
-                '<span class="avatar-content">' + item.userName[item.userName.length - 1] + '</span>' +
+                '<span class="avatar-content">' + user.username[user.username.length - 1] + '</span>' +
                 '</div>'
         } else {
-            str += '<img data-magnify="gallery" class="layui-nav-img" style="margin: 5px;cursor: zoom-in;"  lay-src="' + item.userAvatar + '" data-src="' + item.userAvatar + '" alt="' + item.userName + '" data-group="' + item.userName + '"/>'
+            str += '<img data-magnify="gallery" class="layui-nav-img" style="margin: 5px;cursor: zoom-in;"  lay-src="' + user.avatar + '" data-src="' + user.avatar + '" alt="' + user.username + '" data-group="' + user.username + '"/>'
         }
         //用户在某个产品下的所有反馈
         str += '<a target="_blank" style="color: '
@@ -367,10 +370,9 @@ function generateFlowItem(item, properties) {
         } else {
             str += '#009688';
         }
-        str += ';margin-left: 5px" href="' + getFullUserFeedbackPath(productId, item.userUuid) + '">' + item.userName + '</a>' +
+        str += ';margin-left: 5px" href="' + getFullUserFeedbackPath(productId, user.uuid) + '">' + user.username + '</a>' +
             '<span style="margin-left: 5px; font-size: small" >' + timeAgo(item.createdDate) + '</span>' +
-            '</div>' +
-            '<div style="text-align: right">';
+            '<span style="float: right">';
         if (item.isLocked) {
             str += '<span class="label label-lock">已锁定</span>'
         }
@@ -382,6 +384,7 @@ function generateFlowItem(item, properties) {
         }
         str += '</div>' +
             '</div>' +
+            '</div>' +
             '<div class="layui-card-body">';
         if (item.parent !== null) {
             str += " 回复 " + '<a target="_blank" style="color: '
@@ -390,7 +393,7 @@ function generateFlowItem(item, properties) {
             } else {
                 str += '#009688';
             }
-            str += '" href="' + getFullUserFeedbackPath(productId, item.parent.userUuid) + '">' + item.parent.userName + '</a>：'
+            str += '" href="' + getFullUserFeedbackPath(productId, item.parent.user.uuid) + '">' + item.parent.user.username + '</a>：'
         }
         //回复详情——文字
         str += '<span>' + item.content + '</span>'
@@ -435,13 +438,12 @@ function generateFlowItem(item, properties) {
             str += '<a target="' + target + '" href="' + getFullProductFeedbackRepliesPath(productId, feedbackId) + '#reply" style="color: #333;"><i class="iconButton fa fa-reply" type="reply" pid="' + productId + '" fid="' + item.id + '" style="margin-left: 6px"/></a>';
         }
         str += '</div>' +
-            '</div>' +
             '</div>';
         //回复
         if (item.replies !== undefined && item.replies !== null && !item.replies.empty) {
             str += '<ul>' + generateFlowReplyItem(item, properties) + '</ul>'
         }
-        return str + '</li>';
+        return str + '</div></li>';
     } else {
         let str = '<li><a target="_blank" style="color: ';
         if (item.isAdmin) {
@@ -449,7 +451,7 @@ function generateFlowItem(item, properties) {
         } else {
             str += '#009688';
         }
-        str += '" href="' + getFullUserFeedbackPath(productId, item.userUuid) + '">' + item.userName + '</a>';
+        str += '" href="' + getFullUserFeedbackPath(productId, user.uuid) + '">' + user.username + '</a>';
         if (item.parent !== null) {
             str += " 回复 " + '<a target="_blank" style="color: '
             if (item.parent.isAdmin) {
@@ -457,7 +459,7 @@ function generateFlowItem(item, properties) {
             } else {
                 str += '#009688';
             }
-            str += '" href="' + getFullUserFeedbackPath(productId, item.parent.userUuid) + '">' + item.parent.userName + '</a>'
+            str += '" href="' + getFullUserFeedbackPath(productId, item.parent.user.uuid) + '">' + item.parent.user.username + '</a>'
         }
         str += '：<span>' + item.content + '</span>' +
             '</li>'
@@ -515,25 +517,33 @@ function getUrlParamByUrl(name, url) {
  * 获取自定义登录态参数
  * 优先返回url中设置的user
  * 如果已登录，但是访问其他非自己创建的，则不是admin，会在controller中进一步判断，如果已登录并且是产品的创建者，则自动isAdmin=true
- * @returns {{userAvatar: {String}, userUuid: (String), userName: {String}}|null}
+ * @returns {{userAvatar: (String)|null, userUuid: (String), userName: {String}}|null}
  */
 function getCustomUserInfo() {
     let allUrlParams = getAllUrlParams()
     if (allUrlParams.uid !== undefined && allUrlParams.uid !== null &&
-        allUrlParams.uname !== undefined && allUrlParams.uname !== null &&
-        allUrlParams.uavatar !== undefined && allUrlParams.uavatar !== null) {
+        allUrlParams.uname !== undefined && allUrlParams.uname !== null) {
         return {
             userUuid: allUrlParams.uid,
             userName: allUrlParams.uname,
-            userAvatar: allUrlParams.uavatar
+            userAvatar: allUrlParams.uavatar === undefined ? null : allUrlParams.uavatar
         }
     } else {
+        let localUser = localStorage.getItem("user");
+        if (localUser !== null) {
+            let parse = JSON.parse(localUser);
+            return {
+                userUuid: parse.uid,
+                userName: parse.uname,
+                userAvatar: parse.uavatar
+            }
+        }
         return null
         // let user = getSessionStorageUser();
         // if (user !== null) {
         //     return {
         //         userUuid: user.uuid,
-        //         userName: user.name,
+        //         userName: user.username,
         //         userAvatar: user.avatar
         //     }
         // }
@@ -553,6 +563,28 @@ function getSessionStorageUser() {
     return null
 }
 
+/**
+ * 获取当前用户对象，如果是sessionStorage，则设置sessionFlag=true
+ * @return {Object|null}
+ */
+function getUser() {
+    let sessionStorageUser = getSessionStorageUser();
+    if (sessionStorageUser !== null) {
+        return {
+            userUuid: sessionStorageUser.uuid,
+            userName: sessionStorageUser.username,
+            userAvatar: sessionStorageUser.avatar,
+            sessionFlag: true
+        }
+    } else {
+        let customUser = getCustomUserInfo()
+        if (customUser !== null) {
+            customUser.sessionFlag = false
+        }
+        return customUser
+    }
+}
+
 export const UTIL = {
     formatSeconds: formatSeconds,
     formatTime: formatTime,
@@ -567,7 +599,7 @@ export const UTIL = {
     getFileFullPath: getFileFullPath,
     getCurrentProduct: getCurrentProduct,
     setCurrentProduct: setCurrentProduct,
-    // getFullUserFeedbackPath: getFullUserFeedbackPath,
+    getFullUserFeedbackPath: getFullUserFeedbackPath,
     copyToClipboard: copyToClipboard,
     generateFlowItem: generateFlowItem,
     // generateFlowReplyItem: generateFlowReplyItem,
@@ -578,6 +610,7 @@ export const UTIL = {
     getAllUrlParams: getAllUrlParams,
     getFullNewProductFeedbackPath: getFullNewProductFeedbackPath,
     getSessionStorageUser: getSessionStorageUser,
+    getUser: getUser,
     getUrlParamByUrl: getUrlParamByUrl,
 };
 

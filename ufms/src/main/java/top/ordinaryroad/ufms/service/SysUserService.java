@@ -62,4 +62,22 @@ public interface SysUserService {
     @Nullable
     SysUser selectByUserName(String userName);
 
+    /**
+     * 根据uuid查询用户
+     *
+     * @param uuid uuid
+     * @return user
+     */
+    @Nullable
+    SysUser selectByUuid(String uuid);
+
+    /**
+     * 根据邮箱查询用户
+     *
+     * @param email email
+     * @return user
+     */
+    @Nullable
+    SysUser selectByEmail(String email);
+
 }

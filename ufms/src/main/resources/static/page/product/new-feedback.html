@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <title>产品反馈提交</title>
@@ -23,57 +23,89 @@
     <script src="https://cdn.statidcfile.org/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body>
-<div class="layui-container">
+<body style="margin: 0">
+<div class="layui-layout layui-layout-admin">
+    <!--顶部导航栏-->
+    <div class="layui-header header sticky"
+         style="-webkit-box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);">
+        <a class="header-logo">
+            <img src="" alt="">
+            <span></span>
+        </a>
+        <div class="layuimini-header-content ">
+            <ul class="layui-nav layui-layout-right" style="padding-right: 10%">
+                <li id="headerLogin" class="header-login-button layui-hide">
+                    <a href="/login.html">登录</a>
+                </li>
+                <li id="headerDashboard" class="layui-nav-item layui-hide">
+                    <a href="/home.html">控制台</a>
+                </li>
+                <li id="headerUserInfo" class="layui-nav-item layui-hide">
+                    <a href="javascript:;"><span id="userName"></span></a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" id="userCenter">个人中心</a></dd>
+                        <div id="logout-body" class="layui-hide">
+                            <dd>
+                                <hr>
+                            </dd>
+                            <dd><a href="javascript:;" class="login-out">退出登录</a></dd>
+                        </div>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="layui-container" style="padding-top: 15px">
     <span class="layui-breadcrumb">
       <a id="backHome">首页</a>
       <a><cite>产品反馈提交</cite></a>
     </span>
-    <div style="margin-top: 20px">
-        <form class="layui-form" action="" id="formFeedback">
-            <!--TODO 添加问题分类-->
-            <!--        <div class="layui-form-item">-->
-            <!--            <label class="layui-form-label">问题场景</label>-->
-            <!--            <div class="layui-input-block">-->
-            <!--                <select name="city" lay-verify="required">-->
-            <!--                    <option value=""></option>-->
-            <!--                    <option value="0">场景1</option>-->
-            <!--                    <option value="1">上海</option>-->
-            <!--                    <option value="2">广州</option>-->
-            <!--                    <option value="3">深圳</option>-->
-            <!--                    <option value="4">杭州</option>-->
-            <!--                </select>-->
-            <!--            </div>-->
-            <!--        </div>-->
-            <div class="layui-form-item layui-form-text" style="margin-bottom: 0">
-                <label class="layui-form-label required" for="area">反馈内容</label>
-                <div class="layui-input-block">
+        <div style="margin-top: 20px">
+            <form class="layui-form" action="" id="formFeedback">
+                <!--TODO 添加问题分类-->
+                <!--        <div class="layui-form-item">-->
+                <!--            <label class="layui-form-label">问题场景</label>-->
+                <!--            <div class="layui-input-block">-->
+                <!--                <select name="city" lay-verify="required">-->
+                <!--                    <option value=""></option>-->
+                <!--                    <option value="0">场景1</option>-->
+                <!--                    <option value="1">上海</option>-->
+                <!--                    <option value="2">广州</option>-->
+                <!--                    <option value="3">深圳</option>-->
+                <!--                    <option value="4">杭州</option>-->
+                <!--                </select>-->
+                <!--            </div>-->
+                <!--        </div>-->
+                <div class="layui-form-item layui-form-text" style="margin-bottom: 0">
+                    <label class="layui-form-label required" for="area">反馈内容</label>
+                    <div class="layui-input-block">
                 <textarea name="content" class="layui-textarea" id="area" maxlength="500" placeholder="说说你的问题"
                           lay-verify="required"></textarea>
-                    <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
-                        <span id="textarea_length">0</span> / <span class="num_count">500</span>
-                    </div>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">反馈附图</label>
-                <div class="layui-input-block">
-                    <!--zyupload反馈附图文件上传-->
-                    <div id="zyupload" class="zyupload">
-                        <div id="bottomToolbar" style="margin-top: 254px;padding-bottom:  20px;text-align: right">
-                            <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
-                            <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>
+                        <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
+                            <span id="textarea_length">0</span> / <span class="num_count">500</span>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!--            <div class="layui-form-item" style="float: right">-->
-            <!--                <div class="layui-input-inline">-->
-            <!--                    <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>-->
-            <!--                    <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>-->
-            <!--                </div>-->
-            <!--            </div>-->
-        </form>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">反馈附图</label>
+                    <div class="layui-input-block">
+                        <!--zyupload反馈附图文件上传-->
+                        <div id="zyupload" class="zyupload">
+                            <div id="bottomToolbar" style="margin-top: 254px;padding-bottom:  20px;text-align: right">
+                                <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>
+                                <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--            <div class="layui-form-item" style="float: right">-->
+                <!--                <div class="layui-input-inline">-->
+                <!--                    <button class="layui-btn" lay-submit lay-filter="submit">立即提交</button>-->
+                <!--                    <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置</button>-->
+                <!--                </div>-->
+                <!--            </div>-->
+            </form>
+        </div>
     </div>
 </div>
 <script src="../../lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
@@ -96,17 +128,20 @@
             //图片对应的data-index，zyupload中定义的，删除图片只是设置了display=none
             picturesIndex = [];
 
-        function submitFeedback(data, productId, userUuid, userName, userAvatar) {
+        function submitFeedback(data, productId) {
             let field = data.field;
+            let customUserInfo = window.UTIL.getCustomUserInfo();
+            console.log(customUserInfo)
             field.uuid = uuid
             field.product = {id: productId}
-            field.userUuid = userUuid
-            field.userName = userName
-            field.userAvatar = userAvatar
+            field.user = {
+                uuid: customUserInfo.userUuid,
+                username: customUserInfo.userName,
+                avatar: customUserInfo.userAvatar
+            }
             if (pictures.length !== 0) {
                 field.pictures = JSON.stringify(pictures)
             }
-            console.log(field)
             $.ajax({
                 type: "PUT",
                 url: window.API.FEEDBACK.INSERT,
@@ -115,32 +150,77 @@
                     "Content-Type": "application/json;charset=utf-8"
                 },
                 dataType: "json",
-                success: () => {
-                    layer.msg("反馈提交成功！")
-                    for (let i = 0; i < picturesIndex.length; i++) {
-                        ZYFILE.funDeleteFile(picturesIndex[i], true)
+                success: (res) => {
+                    if (res.success) {
+                        layer.msg("反馈提交成功！")
+                        for (let i = 0; i < picturesIndex.length; i++) {
+                            ZYFILE.funDeleteFile(picturesIndex[i], true)
+                        }
+                        picturesIndex = []
+                        uuid = window.UTIL.uuid()
+                        $("#uploadForm").attr("uuid", uuid)
+                        $("#textarea_length").text(0)
+                        $("#formFeedback")[0].reset();
+                        form.render()
                     }
-                    picturesIndex = []
-                    uuid = window.UTIL.uuid()
-                    $("#uploadForm").attr("uuid", uuid)
-                    $("#textarea_length").text(0)
-                    $("#formFeedback")[0].reset();
-                    form.render()
                 }
             })
         }
 
-        $(() => {
+        /**
+         * 初始化顶部导航栏
+         */
+        function initHeader() {
+            let header = $(".header-logo");
+            header.find("span").text(product.name)
+            header.find("img").attr("src", product.logo)
+
+            let user = window.UTIL.getUser();
+            if (user === null) {
+                $("#headerLogin").removeClass("layui-hide")
+            } else {
+                //如果不是是自定义的用户则显示退出登录、进入控制台
+                if (user.sessionFlag) {
+                    $("#logout-body").removeClass("layui-hide")
+                    $("#headerDashboard").removeClass("layui-hide")
+                }
+                let headerUserInfo = $("#headerUserInfo");
+                headerUserInfo.removeClass("layui-hide")
+                $("#userName").text(user.userName)
+                $("#userCenter").on("click", function () {
+                    window.open(window.UTIL.getFullUserFeedbackPath(product.id, user.userUuid), "_blank")
+                })
+            }
+
+            $(".header-login-button").on("click", function () {
+                console.log("header-login-button")
+                // layer.msg("header-login-button")
+            })
+            $(".login-out").on("click", function () {
+                $.ajax({
+                    url: window.API.USER.LOGOUT,
+                    success() {
+                        sessionStorage.removeItem("user")
+                        layer.msg("退出登录成功", {time: 1500}, function () {
+                            location.reload()
+                        })
+                    }
+                })
+            })
+        }
+
+        /**
+         * 初始化页面
+         */
+        function init() {
             let productId = window.UTIL.getUrlParam("pid");
-            let userUuid = window.UTIL.getUrlParam("uid");
-            let userName = window.UTIL.getUrlParam("uname");
-            let userAvatar = window.UTIL.getUrlParam("uavatar");
             if (productId !== null && productId > 0) {
                 $.ajax({
                     type: "GET", url: window.API.PRODUCT.FIND + productId,
                     success: (response) => {
                         if (response.success) {
                             product = response.data
+                            initHeader()
                             // document.title += "——" + product.name
                             document.title = product.name
                             $("#bottomToolbar")[0].style.marginTop = '0'
@@ -218,10 +298,10 @@
                                 if (picturesIndex.length !== pictures.length) {
                                     layer.confirm('有图片未上传，确定立即提交？', {icon: 7, title: '注意'}, function (index) {
                                         layer.close(index);
-                                        submitFeedback(data, productId, userUuid, userName, userAvatar);
+                                        submitFeedback(data, productId);
                                     });
                                 } else {
-                                    submitFeedback(data, productId, userUuid, userName, userAvatar);
+                                    submitFeedback(data, productId);
                                 }
                                 return false;
                             });
@@ -233,7 +313,24 @@
             } else {
                 window.location.replace("/page/404.html")
             }
-        });
+        }
+
+        /**
+         * 初始化
+         */
+        $(() => {
+            if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+                $.ajax({
+                    url: window.API.USER.GENERATE,
+                    success(res) {
+                        localStorage.setItem("user", JSON.stringify(res.data))
+                        init()
+                    }
+                })
+            } else {
+                init()
+            }
+        })
     });
 </script>
 </body>

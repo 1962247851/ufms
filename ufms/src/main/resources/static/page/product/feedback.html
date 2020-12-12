@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <title>产品反馈首页</title>
@@ -23,8 +23,38 @@
     <script src="https://cdn.statidcfile.org/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body>
-<div>
+<body style="margin: 0">
+<div class="layui-layout layui-layout-admin">
+    <!--顶部导航栏-->
+    <div class="layui-header header sticky"
+         style="-webkit-box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);">
+        <a class="header-logo">
+            <img src="" alt="">
+            <span></span>
+        </a>
+        <div class="layuimini-header-content ">
+            <ul class="layui-nav layui-layout-right" style="padding-right: 10%">
+                <li id="headerLogin" class="header-login-button layui-hide">
+                    <a href="/login.html">登录</a>
+                </li>
+                <li id="headerDashboard" class="layui-nav-item layui-hide">
+                    <a href="/home.html">控制台</a>
+                </li>
+                <li id="headerUserInfo" class="layui-nav-item layui-hide">
+                    <a href="javascript:;"><span id="userName"></span></a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" id="userCenter">个人中心</a></dd>
+                        <div id="logout-body" class="layui-hide">
+                            <dd>
+                                <hr>
+                            </dd>
+                            <dd><a href="javascript:;" class="login-out">退出登录</a></dd>
+                        </div>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
     <!--产品头图-->
     <div class="layui-row">
         <img width="100%" src="https://txc.gtimg.com/static/prod_home_banner.fca33db1.jpg" alt="产品头图"/>
@@ -53,7 +83,7 @@
                     </div>
                 </div>
             </div>
-            <div class="layui-col-md3 layui-col-xs3 layui-col-sm3 layui-col-lg3 sticky">
+            <div class="layui-col-md3 layui-col-xs3 layui-col-sm3 layui-col-lg3 sticky" style="top: 60px">
                 <div class="layui-card"
                      style="display: flex; height: 80px;align-items: center;margin-top: 20px;margin-left: 20px">
                     <!--新建反馈-->
@@ -80,25 +110,133 @@
             layer = layui.layer,
             element = layui.element,
             util = layui.util,
-            flow = layui.flow;
+            flow = layui.flow,
+            productId = null
+        ;
 
-        //一些事件监听
-        element.on('tab(tabFeedback)', function (data) {
-            console.log(data);
-        });
+        /**
+         * 初始化顶部导航栏
+         */
+        function initHeader() {
+            let header = $(".header-logo");
+            header.find("span").text(product.name)
+            header.find("img").attr("src", product.logo)
 
-        $(() => {
-            let productId = window.UTIL.getUrlParam("pid");
-            let userUuid = window.UTIL.getUrlParam("uid");
-            let userName = window.UTIL.getUrlParam("uname");
-            let userAvatar = window.UTIL.getUrlParam("uavatar");
+            let user = window.UTIL.getUser();
+            if (user === null) {
+                $("#headerLogin").removeClass("layui-hide")
+            } else {
+                //如果是自定义的用户则隐藏退出登录
+                if (user.sessionFlag) {
+                    $("#logout-body").removeClass("layui-hide")
+                    $("#headerDashboard").removeClass("layui-hide")
+                }
+                let headerUserInfo = $("#headerUserInfo");
+                headerUserInfo.removeClass("layui-hide")
+                $("#userName").text(user.userName)
+                $("#userCenter").on("click", function () {
+                    window.open(window.UTIL.getFullUserFeedbackPath(product.id, user.userUuid), "_blank")
+                })
+            }
+
+            $(".header-login-button").on("click", function () {
+                console.log("header-login-button")
+                // layer.msg("header-login-button")
+            })
+            $(".login-out").on("click", function () {
+                $.ajax({
+                    url: window.API.USER.LOGOUT,
+                    success() {
+                        sessionStorage.removeItem("user")
+                        layer.msg("退出登录成功", {time: 1500}, function () {
+                            location.reload()
+                        })
+                    }
+                })
+            })
+        }
+
+        /**
+         * 初始化点击事件
+         */
+        function initClickListener() {
+            $("#buttonNewFeedback").on("click", () => {
+                if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+                    $.ajax({
+                        url: window.API.USER.GENERATE,
+                        success(res) {
+                            localStorage.setItem("user", JSON.stringify(res.data))
+                            window.open(window.UTIL.getFullNewProductFeedbackPath(productId), "_blank")
+                        }
+                    })
+                } else {
+                    window.open(window.UTIL.getFullNewProductFeedbackPath(productId), "_blank")
+                }
+            })
+            $(document).on('click', 'i.iconButton', function () {
+                let icon = $(this);
+                let feedbackId = icon.attr("fid")
+                let productId = icon.attr("pid")
+                let type = icon.attr("type");
+                let typeString;
+                if (type === "like") {
+                    $.ajax({
+                        type: "POST", url: window.API.FEEDBACK.LIKE + feedbackId, success: (res) => {
+                            if (res.success) {
+                                layer.msg("点赞成功")
+                                let span = icon.find("span");
+                                console.log(span)
+                                span.text(parseInt(span[0].innerText === '' ? 0 : span[0].innerText) + 1)
+                            }
+                        }
+                    })
+                } else if (type === "reply") {
+                    //ignore
+                } else {
+                    switch (type) {
+                        case "top":
+                            typeString = "置顶"
+                            break
+                        case "hide":
+                            typeString = "隐藏"
+                            break
+                        case "lock":
+                            typeString = "锁定"
+                            break
+                        case "recommend":
+                            typeString = "好问题标记"
+                            break
+                        default:
+                            return true
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: window.API.FEEDBACK.TOGGLE_IS_PROPERTY + feedbackId + "&property=" + type,
+                        success: (res) => {
+                            if (res.data) {
+                                layer.msg(typeString + "成功")
+                            } else {
+                                layer.msg("取消" + typeString + "成功")
+                            }
+                        }
+                    })
+                }
+            });
+        }
+
+        /**
+         * 初始化页面
+         */
+        function init() {
+            productId = window.UTIL.getUrlParam("pid");
+            let user = window.UTIL.getUser()
             let properties = {
                 isReplies: false,
                 isUserDetail: false,
                 productId: productId,
-                userUuid: userUuid,
-                userName: userName,
-                userAvatar: userAvatar,
+                userUuid: user.userUuid,
+                userName: user.userName,
+                userAvatar: user.userAvatar
             }
             if (productId !== null && productId > 0) {
                 $.ajax({
@@ -107,6 +245,8 @@
                         if (response.success) {
                             product = response.data
                             document.title = product.name
+                            //初始化header
+                            initHeader()
                             flow.load({
                                 elem: '#flows',
                                 // scrollElem: '#flows',
@@ -153,71 +293,35 @@
                                     }, 500);
                                 }
                             })
+                            initClickListener()
                         } else {
                             window.location.replace("/page/product/not-found.html")
                         }
                     }
-
-                })
-                $("#buttonNewFeedback").on("click", () => {
-                    window.open(window.UTIL.getFullNewProductFeedbackPath(productId), "_blank")
                 })
 
-                $(document).on('click', 'i.iconButton', function () {
-                    let icon = $(this);
-                    let feedbackId = icon.attr("fid")
-                    let productId = icon.attr("pid")
-                    let type = icon.attr("type");
-                    let typeString;
-                    if (type === "like") {
-                        $.ajax({
-                            type: "POST", url: window.API.FEEDBACK.LIKE + feedbackId, success: (res) => {
-                                if (res.success) {
-                                    layer.msg("点赞成功")
-                                    let span = icon.find("span");
-                                    console.log(span)
-                                    span.text(parseInt(span[0].innerText === '' ? 0 : span[0].innerText) + 1)
-                                }
-                            }
-                        })
-                    } else if (type === "reply") {
-                        //ignore
-                    } else {
-                        switch (type) {
-                            case "top":
-                                typeString = "置顶"
-                                break
-                            case "hide":
-                                typeString = "隐藏"
-                                break
-                            case "lock":
-                                typeString = "锁定"
-                                break
-                            case "recommend":
-                                typeString = "好问题标记"
-                                break
-                            default:
-                                return true
-                        }
-                        $.ajax({
-                            type: "POST",
-                            url: window.API.FEEDBACK.TOGGLE_IS_PROPERTY + feedbackId + "&property=" + type,
-                            success: (res) => {
-                                if (res.data) {
-                                    layer.msg(typeString + "成功")
-                                } else {
-                                    layer.msg("取消" + typeString + "成功")
-                                }
-                            }
-                        })
-                    }
-                });
             } else {
                 window.location.replace("/page/404.html")
+            }
+        }
+
+        /**
+         * 初始化
+         */
+        $(() => {
+            if (window.UTIL.getUser() === null) {
+                $.ajax({
+                    url: window.API.USER.GENERATE,
+                    success(res) {
+                        localStorage.setItem("user", JSON.stringify(res.data))
+                        init()
+                    }
+                })
+            } else {
+                init()
             }
         });
     });
 </script>
 </body>
 </html>
-

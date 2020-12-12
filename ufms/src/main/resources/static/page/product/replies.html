@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <title>反馈详情</title>
@@ -12,75 +12,106 @@
     <meta name="format-detection" content="telephone=no">
     <link rel="icon" href="../../images/favicon.ico">
     <link rel="stylesheet" href="../../lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../css/feedback.css" media="all">
     <link rel="stylesheet" href="../../css/themes/default.css" media="all">
     <link rel="stylesheet" href="../../css/public.css" media="all">
-    <link rel="stylesheet" href="../../css/feedback.css" media="all">
+    <link rel="stylesheet" href="../../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
     <link rel="stylesheet" href="../../lib/jq-module/magnify/jquery.magnify.min.css" media="all">
     <link rel="stylesheet" href="../../lib/jq-module/magnify/docs.css" media="all">
-    <link rel="stylesheet" href="../../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
     <link rel="stylesheet" href="../../lib/jq-module/zyupload/zyupload-1.0.0.min.css" media="all">
     <!--[if lt IE 9]>
     <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
     <script src="https://cdn.statidcfile.org/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body>
-
-<!--回复列表-->
-<div class="layui-container">
-    <span class="layui-breadcrumb">
-      <a id="backHome">首页</a>
-      <a><cite>反馈详情</cite></a>
-    </span>
-    <!--头部的反馈-->
-    <ul style="margin-top: 20px" id="originalFeedback"></ul>
-    <div id="reply" style="margin-top: 10px">
-        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
-            <legend><a href="#reply">评论<span id="repliesTitleCnt" style="margin-left: 5px;"></span></a></legend>
-        </fieldset>
-        <div class="layui-card" style="margin: 10px;">
-            <form class="layui-form" action="" id="formFeedback">
-                <div class="layui-card-body">
-                    <div class="layui-form-item layui-form-text" style="margin-bottom: 0;">
-                        <div style="width: 30px;float: left">
-                            <div id="avatarDefault" class="avatar-container" style="float: left;display: none">
-                                <span class="avatar-content">像</span>
-                            </div>
-                            <div id="customUserInfo" style="display: none;width: 30px">
-                                <img id="avatarUser" class="layui-nav-img" style="cursor: zoom-in" alt="" src="">
-                            </div>
+<body style="margin: 0">
+<div class="layui-layout layui-layout-admin">
+    <!--顶部导航栏-->
+    <div class="layui-header header sticky"
+         style="-webkit-box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);">
+        <a class="header-logo">
+            <img src="" alt="">
+            <span></span>
+        </a>
+        <div class="layuimini-header-content ">
+            <ul class="layui-nav layui-layout-right" style="padding-right: 10%">
+                <li id="headerLogin" class="header-login-button layui-hide">
+                    <a href="/login.html">登录</a>
+                </li>
+                <li id="headerDashboard" class="layui-nav-item layui-hide">
+                    <a href="/home.html">控制台</a>
+                </li>
+                <li id="headerUserInfo" class="layui-nav-item layui-hide">
+                    <a href="javascript:;"><span id="userName"></span></a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" id="userCenter">个人中心</a></dd>
+                        <div id="logout-body" class="layui-hide">
+                            <dd>
+                                <hr>
+                            </dd>
+                            <dd><a href="javascript:;" class="login-out">退出登录</a></dd>
                         </div>
-                        <div style="margin-left: 45px">
+                    </dl>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!--回复列表-->
+    <div class="layui-container" style="padding-top: 15px">
+        <span class="layui-breadcrumb">
+          <a id="backHome">首页</a>
+          <a><cite>反馈详情</cite></a>
+        </span>
+        <!--头部的反馈-->
+        <ul style="margin-top: 20px" id="originalFeedback"></ul>
+        <div id="reply" style="margin-top: 10px">
+            <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                <legend><a href="#reply">评论<span id="repliesTitleCnt" style="margin-left: 5px;"></span></a></legend>
+            </fieldset>
+            <div class="layui-card" style="margin: 10px;">
+                <form class="layui-form" action="" id="formFeedback">
+                    <div class="layui-card-body">
+                        <div class="layui-form-item layui-form-text" style="margin-bottom: 0;">
+                            <div style="width: 30px;float: left">
+                                <div id="avatarDefault" class="avatar-container" style="float: left;display: none">
+                                    <span class="avatar-content">像</span>
+                                </div>
+                                <div id="customUserInfo" style="display: none;width: 30px">
+                                    <img id="avatarUser" class="layui-nav-img" style="cursor: zoom-in" alt="" src="">
+                                </div>
+                            </div>
+                            <div style="margin-left: 45px">
                                 <textarea name="content" class="layui-textarea" id="area" maxlength="500"
                                           placeholder="别害羞，快来说两句吧" lay-verify="required"></textarea>
-                            <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
-                                <span id="textarea_length">0</span> / <span class="num_count">500</span>
-                            </div>
-                            <div class="layui-form-item" style="margin-bottom: 0">
-                                <!--zyupload反馈附图文件上传-->
-                                <div id="zyupload" class="zyupload"></div>
-                            </div>
-                            <div>
-                                <div class="layui-form-item" style="text-align: right;margin-bottom: 0;">
-                                    <button class="layui-btn" lay-submit lay-filter="submit">评论</button>
-                                    <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置
-                                    </button>
+                                <div style="margin-top: 10px;margin-right: 8px; text-align: right;">
+                                    <span id="textarea_length">0</span> / <span class="num_count">500</span>
+                                </div>
+                                <div class="layui-form-item" style="margin-bottom: 0">
+                                    <!--zyupload反馈附图文件上传-->
+                                    <div id="zyupload" class="zyupload"></div>
+                                </div>
+                                <div>
+                                    <div class="layui-form-item" style="text-align: right;margin-bottom: 0;">
+                                        <button class="layui-btn" lay-submit lay-filter="submit">评论</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary" id="buttonReset">重置
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </form>
-            <!--锁帖提示-->
-            <div id="lockedTip" class="layui-hide"
-                 style="color: #FF5722;padding-top: 10px; padding-bottom: 10px;
+                </form>
+                <!--锁帖提示-->
+                <div id="lockedTip" class="layui-hide"
+                     style="color: #FF5722;padding-top: 10px; padding-bottom: 10px;
                  justify-content: center;display: flex;align-items: center;">
-                <i class="fa fa-lock" style="font-size: 22px;margin-right: 2px"></i>
-                <span style="height: 20px;line-height: 20px;font-size: 18px">已被锁定</span>
+                    <i class="fa fa-lock" style="font-size: 22px;margin-right: 2px"></i>
+                    <span style="height: 20px;line-height: 20px;font-size: 18px">已被锁定</span>
+                </div>
             </div>
+            <ul id="flows">
+            </ul>
         </div>
-        <ul id="flows">
-        </ul>
     </div>
 </div>
 
@@ -96,6 +127,7 @@
             layer = layui.layer,
             form = layui.form,
             flow = layui.flow,
+            product = null,
             //反馈的uuid，上传图片要用
             uuid = window.UTIL.uuid(),
             //图片列表，要转换为json
@@ -107,41 +139,139 @@
             parentFeedbackUserUuid = null,
             parentFeedbackUserName = null;
 
-        $(() => {
-            let product, original = null;
+        /**
+         * 初始化顶部导航栏
+         */
+        function initHeader() {
+            let header = $(".header-logo");
+            header.find("span").text(product.name)
+            header.find("img").attr("src", product.logo)
+
+            let user = window.UTIL.getUser();
+            if (user === null) {
+                $("#headerLogin").removeClass("layui-hide")
+            } else {
+                //如果不是是自定义的用户则显示退出登录、进入控制台
+                if (user.sessionFlag) {
+                    $("#logout-body").removeClass("layui-hide")
+                    $("#headerDashboard").removeClass("layui-hide")
+                }
+                let headerUserInfo = $("#headerUserInfo");
+                headerUserInfo.removeClass("layui-hide")
+                $("#userName").text(user.userName)
+                $("#userCenter").on("click", function () {
+                    window.open(window.UTIL.getFullUserFeedbackPath(product.id, user.userUuid), "_blank")
+                })
+            }
+
+            $(".header-login-button").on("click", function () {
+                console.log("header-login-button")
+                // layer.msg("header-login-button")
+            })
+            $(".login-out").on("click", function () {
+                $.ajax({
+                    url: window.API.USER.LOGOUT,
+                    success() {
+                        sessionStorage.removeItem("user")
+                        layer.msg("退出登录成功", {time: 1500}, function () {
+                            location.reload()
+                        })
+                    }
+                })
+            })
+        }
+
+        /**
+         * 初始化点击事件
+         */
+        function initClickListener() {
+            $(document).on('click', 'i.iconButton', function () {
+                let icon = $(this);
+                console.log(icon)
+                let feedbackId = icon.attr("fid")
+                // let productId = icon.attr("pid")
+                let type = icon.attr("type");
+                let typeString;
+                if (type === "like") {
+                    $.ajax({
+                        type: "POST", url: window.API.FEEDBACK.LIKE + feedbackId, success: (res) => {
+                            if (res.success) {
+                                layer.msg("点赞成功")
+                                let span = icon.find("span");
+                                console.log(span)
+                                span.text(parseInt(span[0].innerText === '' ? 0 : span[0].innerText) + 1)
+                            }
+                        }
+                    })
+                } else if (type === "reply") {
+                    let parentUserName = icon.parent().parent().parent().parent().find(".layui-card-header").find("a").text();
+                    let parentUserUuid = window.UTIL.getUrlParamByUrl("suid", icon.parent().parent().parent().parent().find(".layui-card-header").find("a").attr("href"));
+                    console.log(parentUserName)
+                    parentFeedbackId = feedbackId
+                    parentFeedbackUserUuid = parentUserUuid
+                    parentFeedbackUserName = parentUserName
+                    $("#area").attr("placeholder", "回复：" + parentUserName)
+                } else {
+                    switch (type) {
+                        case "top":
+                            typeString = "置顶"
+                            break
+                        case "hide":
+                            typeString = "隐藏"
+                            break
+                        case "lock":
+                            typeString = "锁定"
+                            break
+                        case "recommend":
+                            typeString = "好问题标记"
+                            break
+                        default:
+                            return true
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: window.API.FEEDBACK.TOGGLE_IS_PROPERTY + feedbackId + "&property=" + type,
+                        success: (res) => {
+                            if (res.data) {
+                                layer.msg(typeString + "成功")
+                            } else {
+                                layer.msg("取消" + typeString + "成功")
+                            }
+                        }
+                    })
+                }
+            })
+        }
+
+        /**
+         * 初始化页面
+         */
+        function init() {
+            let original = null;
             let productId = window.UTIL.getUrlParam("pid");
             let originalId = window.UTIL.getUrlParam("oid");
-            let userUuid = window.UTIL.getUrlParam("uid");
-            let userName = window.UTIL.getUrlParam("uname");
-            let userAvatar = window.UTIL.getUrlParam("uavatar");
-            let customUserInfo = window.UTIL.getCustomUserInfo();
-            let sessionStorageUser = window.UTIL.getSessionStorageUser();
-            console.log(customUserInfo)
-            if (customUserInfo === null && sessionStorageUser == null) {
+            let user = window.UTIL.getUser();
+            if (user.userAvatar === null) {
+                $(".avatar-content").text(user.userName[user.userName.length - 1]);
                 $("#avatarDefault").css("display", "")
             } else {
                 $("#customUserInfo").css("display", "")
                 let avatarUser = $("#avatarUser");
                 avatarUser.attr("data-magnify", "gallery")
-                if (sessionStorageUser === null) {
-                    avatarUser.attr("src", customUserInfo.userAvatar)
-                    avatarUser.attr("data-src", customUserInfo.userAvatar)
-                    avatarUser.attr("data-group", customUserInfo.userName)
-                } else {
-                    avatarUser.attr("src", sessionStorageUser.avatar)
-                    avatarUser.attr("data-src", sessionStorageUser.avatar)
-                    avatarUser.attr("data-group", sessionStorageUser.name)
-                }
+                avatarUser.attr("src", user.userAvatar)
+                avatarUser.attr("data-src", user.userAvatar)
+                avatarUser.attr("data-group", user.userName)
             }
-            console.log(window.UTIL.getAllUrlParams())
             if (productId !== null && productId > 0) {
                 $.ajax({
                     type: "GET", url: window.API.PRODUCT.FIND + productId,
                     success: (response) => {
                         if (response.success) {
                             product = response.data
-                            // document.title += "——" + product.name
                             document.title = product.name
+                            //初始化header
+                            initHeader()
+                            //查询主贴并初始化
                             $.ajax({
                                 type: "GET", url: window.API.FEEDBACK.FIND + originalId,
                                 success: (response) => {
@@ -153,9 +283,9 @@
                                                 {
                                                     isReplies: true,
                                                     productId: productId,
-                                                    userUuid: userUuid,
-                                                    userName: userName,
-                                                    userAvatar: userAvatar
+                                                    userUuid: user.userUuid,
+                                                    userName: user.userName,
+                                                    userAvatar: user.userAvatar
                                                 }).replaceAll('lay-src="', 'src="')
                                             )
                                         }
@@ -239,10 +369,10 @@
                                                     layer.confirm('有图片未上传，确定立即提交？', {icon: 7, title: '注意'},
                                                         function (index) {
                                                             layer.close(index);
-                                                            submitFeedback(data, productId, originalId, userUuid, userName, userAvatar);
+                                                            submit(data, productId, originalId)
                                                         });
                                                 } else {
-                                                    submitFeedback(data, productId, originalId, userUuid, userName, userAvatar);
+                                                    submit(data, productId, originalId)
                                                 }
                                                 return false;
                                             });
@@ -271,9 +401,9 @@
                                                                 lis.push(window.UTIL.generateFlowItem(item, {
                                                                     isReplies: true,
                                                                     productId: productId,
-                                                                    userUuid: userUuid,
-                                                                    userName: userName,
-                                                                    userAvatar: userAvatar
+                                                                    userUuid: user.userUuid,
+                                                                    userName: user.userName,
+                                                                    userAvatar: user.userAvatar
                                                                 }));
                                                             });
                                                             next(lis.join(''), page < res.data.totalPages);
@@ -287,95 +417,72 @@
                                     }
                                 }
                             })
+                            initClickListener()
                         } else {
                             window.location.replace("/page/product/not-found.html")
                         }
                     }
                 })
 
-                $(document).on('click', 'i.iconButton', function () {
-                    let icon = $(this);
-                    console.log(icon)
-                    //TODO 置顶、隐藏、锁定、标记为好问题、回复
-                    let feedbackId = icon.attr("fid")
-                    let productId = icon.attr("pid")
-                    let type = icon.attr("type");
-                    let typeString;
-                    if (type === "like") {
-                        $.ajax({
-                            type: "POST", url: window.API.FEEDBACK.LIKE + feedbackId, success: (res) => {
-                                if (res.success) {
-                                    layer.msg("点赞成功")
-                                    let span = icon.find("span");
-                                    console.log(span)
-                                    span.text(parseInt(span[0].innerText === '' ? 0 : span[0].innerText) + 1)
-                                }
-                            }
-                        })
-                    } else if (type === "reply") {
-                        let parentUserName = icon.parent().parent().parent().parent().find(".layui-card-header").find("a").text();
-                        let parentUserUuid = window.UTIL.getUrlParamByUrl("suid", icon.parent().parent().parent().parent().find(".layui-card-header").find("a").attr("href"));
-                        console.log(parentUserName)
-                        parentFeedbackId = feedbackId
-                        parentFeedbackUserUuid = parentUserUuid
-                        parentFeedbackUserName = parentUserName
-                        $("#area").attr("placeholder", "回复：" + parentUserName)
-                        // layer.msg("回复pid=" + productId + ",fid=" + feedbackId + ",oid=" + originalId)
-                    } else {
-                        switch (type) {
-                            case "top":
-                                typeString = "置顶"
-                                break
-                            case "hide":
-                                typeString = "隐藏"
-                                break
-                            case "lock":
-                                typeString = "锁定"
-                                break
-                            case "recommend":
-                                typeString = "好问题标记"
-                                break
-                            default:
-                                return true
-                        }
-                        $.ajax({
-                            type: "POST",
-                            url: window.API.FEEDBACK.TOGGLE_IS_PROPERTY + feedbackId + "&property=" + type,
-                            success: (res) => {
-                                if (res.data) {
-                                    layer.msg(typeString + "成功")
-                                } else {
-                                    layer.msg("取消" + typeString + "成功")
-                                }
-                            }
-                        })
-                    }
-                })
             } else {
                 window.location.replace("/page/404.html")
             }
+        }
+
+        /**
+         * 初始化
+         */
+        $(() => {
+            if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+                $.ajax({
+                    url: window.API.USER.GENERATE,
+                    success(res) {
+                        localStorage.setItem("user", JSON.stringify(res.data))
+                        init()
+                    }
+                })
+            } else {
+                init()
+            }
         })
 
-        function submitFeedback(data, productId, originalId, userUuid, userName, userAvatar) {
+        function submit(data, productId, originalId) {
+            if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+                $.ajax({
+                    url: window.API.USER.GENERATE,
+                    success(res) {
+                        localStorage.setItem("user", JSON.stringify(res.data))
+                        submitFeedback(data, productId, originalId)
+                    }
+                })
+            } else {
+                submitFeedback(data, productId, originalId)
+            }
+        }
+
+        function submitFeedback(data, productId, originalId) {
             let field = data.field;
+            let customUserInfo = window.UTIL.getCustomUserInfo();
             field.uuid = uuid
             field.product = {id: productId}
             field.original = {id: originalId}
             if (pictures.length !== 0) {
                 field.pictures = JSON.stringify(pictures)
             }
-            field.userUuid = userUuid
-            field.userName = userName
-            field.userAvatar = userAvatar
+            field.user = {
+                uuid: customUserInfo.userUuid,
+                username: customUserInfo.userName,
+                avatar: customUserInfo.userAvatar
+            }
             if (parentFeedbackId !== null) {
                 field.parent = {
                     id: parentFeedbackId,
-                    userUuid: parentFeedbackUserUuid,
-                    userName: parentFeedbackUserName
+                    user: {
+                        uuid: parentFeedbackUserUuid,
+                        username: parentFeedbackUserName
+                    }
                 }
             }
-            console.log(field)
-
             $.ajax({
                 type: "PUT",
                 url: window.API.FEEDBACK.INSERT,
@@ -385,24 +492,26 @@
                 },
                 dataType: "json",
                 success: (res) => {
-                    layer.msg("评论成功")
-                    $("#flows").prepend(
-                        window.UTIL.generateFlowItem(res.data, {
-                            isReplies: true,
-                            isUserDetail: false,
-                            productId: productId,
-                            userUuid: userUuid,
-                            userName: userName,
-                            userAvatar: userAvatar
-                        }).replaceAll('lay-src="', 'src="')
-                    )
-                    reset()
-                    uuid = window.UTIL.uuid()
-                    $("#uploadForm").attr("uuid", uuid)
-                    let $repliesTitleCnt = $("#repliesTitleCnt");
-                    $repliesTitleCnt.text($repliesTitleCnt[0].innerText === '' ? 1 : parseInt($repliesTitleCnt[0].innerText) + 1)
-                    $("#formFeedback")[0].reset();
-                    form.render()
+                    if (res.success) {
+                        layer.msg("评论成功")
+                        $("#flows").prepend(
+                            window.UTIL.generateFlowItem(res.data, {
+                                isReplies: true,
+                                isUserDetail: false,
+                                productId: productId,
+                                userUuid: customUserInfo.userUuid,
+                                userName: customUserInfo.userName,
+                                userAvatar: customUserInfo.userAvatar
+                            }).replaceAll('lay-src="', 'src="')
+                        )
+                        reset()
+                        uuid = window.UTIL.uuid()
+                        $("#uploadForm").attr("uuid", uuid)
+                        let $repliesTitleCnt = $("#repliesTitleCnt");
+                        $repliesTitleCnt.text($repliesTitleCnt[0].innerText === '' ? 1 : parseInt($repliesTitleCnt[0].innerText) + 1)
+                        $("#formFeedback")[0].reset();
+                        form.render()
+                    }
                 }
             })
         }
@@ -425,44 +534,6 @@
             picturesIndex = []
         }
 
-    })
-
-    $('[data-magnify]').magnify({
-        headerToolbar: [
-            'minimize',
-            'maximize',
-            'close'
-        ],
-        footerToolbar: [
-            'prev',
-            'next',
-            'zoomIn',
-            'zoomOut',
-            'fullscreen',
-            'actualSize',
-            'rotateLeft',
-            'rotateRight',
-            'myCustomButton'
-        ],
-        customButtons: {
-            myCustomButton: {
-                text: 'custom!',
-                title: 'custom!',
-                click: function (context, e) {
-                    alert('clicked the custom button!');
-                }
-            }
-        },
-        modalWidth: 400,
-        modalHeight: 400,
-        callbacks: {
-            beforeChange: function (context, index) {
-                console.log(context, index)
-            },
-            changed: function (context, index) {
-                console.log(context, index)
-            }
-        }
     })
 
 </script>
