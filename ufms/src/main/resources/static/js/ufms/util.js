@@ -612,6 +612,8 @@ export const UTIL = {
     getSessionStorageUser: getSessionStorageUser,
     getUser: getUser,
     getUrlParamByUrl: getUrlParamByUrl,
+    generateFlowItemPictures: generateFlowItemPictures,
+    getFullProductFeedbackRepliesPath: getFullProductFeedbackRepliesPath
 };
 
 export default {

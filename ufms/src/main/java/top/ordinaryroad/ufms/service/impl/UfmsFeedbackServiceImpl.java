@@ -141,30 +141,19 @@ public class UfmsFeedbackServiceImpl implements UfmsFeedbackService {
         }
         if (requestParams.containsKey("searchParams")) {
             JSONObject searchParams = JSON.parseObject(requestParams.get("searchParams").toString());
-            String userUuid = "";
-            String userName = "";
-            String content = "";
-            if (searchParams.containsKey("userUuid") && searchParams.containsKey("userName") && searchParams.containsKey("content")) {
-                userUuid = "%" + searchParams.get("userUuid") + "%";
-                userName = "%" + searchParams.get("userName") + "%";
-                content = "%" + searchParams.get("content") + "%";
-                //TODO 查询
-                return dao.findAllByProductAndContentLikeAndIsHidden(new UfmsProduct(productId), content, false, pageRequest);
-//                return dao.findAllByProductAndUsernameLikeAndContentLikeAndUserUuidLikeAndIsHidden(new UfmsProduct(productId), userName, content, userUuid, false, pageRequest);
-            } else if (searchParams.containsKey("userUuid")) {
-                return dao.findAllByProductAndUserUuidLikeAndIsHidden(new UfmsProduct(productId), userUuid, false, pageRequest);
-            } else if (searchParams.containsKey("userName")) {
-                //TODO 查询
-                return dao.findAllByProductAndContentLikeAndIsHidden(new UfmsProduct(productId), content, false, pageRequest);
-//                return dao.findAllByProductAndUsernameLikeAndIsHidden(new UfmsProduct(productId), userName, false, pageRequest);
-            } else if (searchParams.containsKey("content")) {
-                return dao.findAllByProductAndContentLikeAndIsHidden(new UfmsProduct(productId), content, false, pageRequest);
-            }
-//            else {
-//                return dao.findAllByProductAndIsHidden(new UfmsProduct(productId), false, pageRequest);
-//            }
+            String userUuid = "%" + searchParams.getOrDefault("userUuid", "") + "%";
+            String userName = "%" + searchParams.getOrDefault("userName", "") + "%";
+            String content = "%" + searchParams.getOrDefault("content", "") + "%";
+            return dao.findAll((Specification<UfmsFeedback>) (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                    criteriaBuilder.equal(root.get("product"), productId),
+                    criteriaBuilder.like(root.get("content"), content),
+                    criteriaBuilder.like(root.get("user").get("username"), userName),
+                    criteriaBuilder.like(root.get("user").get("uuid"), userUuid)
+            ), pageRequest);
         }
-        return dao.findAllByProductAndIsHidden(new UfmsProduct(productId), false, pageRequest);
+        return dao.findAll((Specification<UfmsFeedback>) (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                criteriaBuilder.equal(root.get("product"), productId)
+        ), pageRequest);
     }
 
     @Override
@@ -289,39 +278,47 @@ public class UfmsFeedbackServiceImpl implements UfmsFeedbackService {
         Boolean result = null;
         if (byId.isPresent()) {
             UfmsFeedback ufmsFeedback = byId.get();
-            if (ufmsFeedback.getOriginal() == null) {
-                if (ufmsFeedback.getProduct().getUser().getId().equals(userId)) {
-                    switch (property) {
-                        case "top":
+            if (ufmsFeedback.getProduct().getUser().getId().equals(userId)) {
+                switch (property) {
+                    case "top":
+                        if (ufmsFeedback.getOriginal() == null) {
                             ufmsFeedback.setIsTopping(!ufmsFeedback.getIsTopping());
                             result = ufmsFeedback.getIsTopping();
-                            break;
-                        case "hide":
-                            ufmsFeedback.setIsHidden(!ufmsFeedback.getIsHidden());
-                            result = ufmsFeedback.getIsHidden();
-                            break;
-                        case "lock":
+                        } else {
+                            return ResultTool.fail(ResultCode.ONLY_MAIN_FEEDBACK_CAN_BE_TOPPED);
+                        }
+                        break;
+                    case "hide":
+                        ufmsFeedback.setIsHidden(!ufmsFeedback.getIsHidden());
+                        result = ufmsFeedback.getIsHidden();
+                        break;
+                    case "lock":
+                        if (ufmsFeedback.getOriginal() == null) {
                             ufmsFeedback.setIsLocked(!ufmsFeedback.getIsLocked());
                             result = ufmsFeedback.getIsLocked();
-                            break;
-                        case "recommend":
+                        } else {
+                            return ResultTool.fail(ResultCode.ONLY_MAIN_FEEDBACK_CAN_BE_LOCKER);
+                        }
+                        break;
+                    case "recommend":
+                        if (ufmsFeedback.getOriginal() == null) {
                             ufmsFeedback.setIsRecommend(!ufmsFeedback.getIsRecommend());
                             result = ufmsFeedback.getIsRecommend();
-                            break;
-                        default:
-                            break;
-                    }
-                    if (result == null) {
-                        return ResultTool.fail(ResultCode.PARAM_NOT_VALID);
-                    } else {
-                        dao.saveAndFlush(ufmsFeedback);
-                        return ResultTool.success(result);
-                    }
+                        } else {
+                            return ResultTool.fail(ResultCode.ONLY_MAIN_FEEDBACK_CAN_BE_RECOMMENDED);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                if (result == null) {
+                    return ResultTool.fail(ResultCode.PARAM_NOT_VALID);
                 } else {
-                    return ResultTool.fail(ResultCode.NO_PERMISSION);
+                    dao.saveAndFlush(ufmsFeedback);
+                    return ResultTool.success(result);
                 }
             } else {
-                return ResultTool.fail(ResultCode.ONLY_MAIN_FEEDBACK_CAN_BE_TOPPED);
+                return ResultTool.fail(ResultCode.NO_PERMISSION);
             }
         } else {
             return ResultTool.fail(ResultCode.DATA_NOT_EXIST);

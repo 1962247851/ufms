@@ -29,7 +29,7 @@
     <div class="layui-header header sticky"
          style="-webkit-box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);">
         <a class="header-logo">
-            <img src="" alt="">
+            <img src="../../images/favicon.ico" alt="">
             <span></span>
         </a>
         <div class="layuimini-header-content ">
@@ -89,7 +89,9 @@
         function initHeader() {
             let header = $(".header-logo");
             header.find("span").text(product.name)
-            header.find("img").attr("src", product.logo)
+            if (product.logo !== undefined && product.logo !== null) {
+                header.find("img").attr("src", window.UTIL.getFileFullPath(product.uuid, product.logo, "product"))
+            }
 
             let user = window.UTIL.getUser();
             if (user === null) {

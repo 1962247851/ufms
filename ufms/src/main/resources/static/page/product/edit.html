@@ -60,9 +60,12 @@
                             <img src="" alt="上传成功后渲染" style="max-width: 196px">
                         </div>
                     </div>
+                    <button type="button" id="buttonClearLogo" class="layui-btn layui-btn-primary layui-btn-sm">
+                        <i class="layui-icon layui-icon-delete"></i>
+                    </button>
                 </div>
                 <div class="layui-inline">
-                    <label class="layui-form-label">封面头图</label>
+                    <label class="layui-form-label">首页头图</label>
                     <div class="layui-upload-drag" id="uploadBanner">
                         <div id="uploadBannerViewTip" class="layui-hide">
                             <i class="layui-icon">&#xe67c;</i>
@@ -72,6 +75,9 @@
                             <img src="" alt="上传成功后渲染" style="max-width: 196px">
                         </div>
                     </div>
+                    <button type="button" id="buttonClearBanner" class="layui-btn layui-btn-primary layui-btn-sm">
+                        <i class="layui-icon layui-icon-delete"></i>
+                    </button>
                 </div>
             </div>
         </form>
@@ -103,6 +109,7 @@
                 type: "product"
             }
             , done: function (res) {
+                $("#uploadLogoViewTip").addClass("layui-hide")
                 let currentProduct = window.UTIL.getCurrentProduct()
                 currentProduct.logo = res.data
                 updateCurrentProduct(currentProduct, -1)
@@ -119,6 +126,7 @@
                 type: "product"
             }
             , done: function (res) {
+                $("#uploadBannerViewTip").addClass("layui-hide")
                 let currentProduct = window.UTIL.getCurrentProduct()
                 currentProduct.banner = res.data
                 updateCurrentProduct(currentProduct, -1)
@@ -211,6 +219,23 @@
                 }
             });
         }
+
+        $("#buttonClearLogo").on("click", function () {
+            layer.confirm("确定清空产品Logo？", {icon: 3, title: "提示"}, function (index) {
+                    let currentProduct = window.UTIL.getCurrentProduct()
+                    currentProduct.logo = null
+                    updateCurrentProduct(currentProduct, index)
+                }
+            )
+        })
+        $("#buttonClearBanner").on("click", function () {
+            layer.confirm("确定清空产品首页头图？", {icon: 3, title: "提示"}, function (index) {
+                    let currentProduct = window.UTIL.getCurrentProduct()
+                    currentProduct.banner = null
+                    updateCurrentProduct(currentProduct, index)
+                }
+            )
+        })
 
         $(() => {
             //初始化

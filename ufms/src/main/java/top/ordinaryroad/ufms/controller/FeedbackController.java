@@ -11,14 +11,17 @@ import top.ordinaryroad.ufms.common.enums.ResultCode;
 import top.ordinaryroad.ufms.common.utils.IdUtils;
 import top.ordinaryroad.ufms.common.utils.ResultTool;
 import top.ordinaryroad.ufms.entity.SysUser;
+import top.ordinaryroad.ufms.entity.SysUserRoleRelation;
 import top.ordinaryroad.ufms.entity.UfmsFeedback;
 import top.ordinaryroad.ufms.exception.UserNotLoginException;
+import top.ordinaryroad.ufms.service.SysUserRoleRelationService;
 import top.ordinaryroad.ufms.service.SysUserService;
 import top.ordinaryroad.ufms.service.UfmsFeedbackService;
 import top.ordinaryroad.ufms.service.UfmsProductService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 用户反馈控制器
@@ -34,11 +37,13 @@ public class FeedbackController extends BaseUserController implements ForeignKey
     private final UfmsFeedbackService feedbackService;
     private final UfmsProductService productService;
     private final SysUserService userService;
+    private final SysUserRoleRelationService userRoleRelationService;
 
-    public FeedbackController(UfmsFeedbackService feedbackService, UfmsProductService productService, SysUserService userService) {
+    public FeedbackController(UfmsFeedbackService feedbackService, UfmsProductService productService, SysUserService userService, SysUserRoleRelationService userRoleRelationService) {
         this.feedbackService = feedbackService;
         this.productService = productService;
         this.userService = userService;
+        this.userRoleRelationService = userRoleRelationService;
     }
 
     /**
@@ -85,10 +90,19 @@ public class FeedbackController extends BaseUserController implements ForeignKey
             if (entityUser == null || StringUtil.isNullOrEmpty(entityUser.getUuid()) || StringUtil.isNullOrEmpty(entityUser.getUsername())) {
                 entity.setUser(new SysUser(IdUtils.fastSimpleUUID(), new KCNamer().getRandomName(), null));
             } else {
-                if (userService.selectByUuid(entityUser.getUuid()) == null) {
-                    userService.insert(entityUser);
+                //查询user表中是否存在自定义的user
+                SysUser customUser = userService.selectByUuid(entityUser.getUuid());
+                if (customUser == null) {
+                    //保存自定义user
+                    SysUser insert = userService.insert(entityUser);
+                    userRoleRelationService.insert(new SysUserRoleRelation(insert.getId(), 2L));
+                } else {
+                    if (!Objects.equals(customUser.getAvatar(), entityUser.getAvatar())) {
+                        customUser.setAvatar(entityUser.getAvatar());
+                        customUser = userService.update(customUser);
+                    }
                 }
-                entity.setUser(userService.selectByUuid(entityUser.getUuid()));
+                entity.setUser(customUser);
             }
         }
         return ResultTool.success(feedbackService.insert(entity));
@@ -152,21 +166,6 @@ public class FeedbackController extends BaseUserController implements ForeignKey
     public JsonResult<?> findAll(@RequestParam Map<String, Object> requestParams) {
         return null;
     }
-
-//    public static void main(String[] args) {
-//        KCNamer kcNamer = new KCNamer();
-//        Set<String> names = new HashSet<>(1000000);
-//        for (int i = 0; i < 1000000; i++) {
-//            String randomName = kcNamer.getRandomName();
-//            if (names.contains(randomName)) {
-//                System.out.println("========================================");
-//                System.out.println("重复的姓名，" + randomName);
-//                System.out.println("========================================");
-//                break;
-//            }
-//            names.add(randomName);
-//        }
-//    }
 
     /**
      * 根据关联的外键分页找到所有数据

@@ -44,7 +44,7 @@
             {
               "title": "产品设置",
               "href": "page/product/edit.html",
-              "icon": "fa fa-list-alt",
+              "icon": "fa fa-cog",
               "target": "_self"
             }
           ]
@@ -58,7 +58,7 @@
             {
               "title": "接入地址",
               "href": "page/helper/href.html",
-              "icon": "fa fa-list-alt",
+              "icon": "layui-icon layui-icon-help",
               "target": "_self"
             }
           ]
@@ -100,13 +100,13 @@
             {
               "title": "基本资料",
               "href": "page/user-setting.html",
-              "icon": "layui-icon layui-icon-app",
+              "icon": "layui-icon layui-icon-username",
               "target": "_self"
             },
             {
               "title": "密码修改",
               "href": "page/user-password.html",
-              "icon": "layui-icon layui-icon-app",
+              "icon": "layui-icon layui-icon-password",
               "target": "_self"
             }
           ]

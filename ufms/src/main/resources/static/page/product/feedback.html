@@ -29,7 +29,7 @@
     <div class="layui-header header sticky"
          style="-webkit-box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);box-shadow: 0 2px 4px 0 rgba(85, 85, 85, 0.1);">
         <a class="header-logo">
-            <img src="" alt="">
+            <img src="../../images/favicon.ico" alt="">
             <span></span>
         </a>
         <div class="layuimini-header-content ">
@@ -57,7 +57,8 @@
     </div>
     <!--产品头图-->
     <div class="layui-row">
-        <img width="100%" src="https://txc.gtimg.com/static/prod_home_banner.fca33db1.jpg" alt="产品头图"/>
+        <img width="100%" height="250px" id="imgBanner" src="https://txc.gtimg.com/static/prod_home_banner.fca33db1.jpg"
+             alt="产品头图" style="object-fit: cover"/>
     </div>
 
     <div class="layui-container">
@@ -120,7 +121,9 @@
         function initHeader() {
             let header = $(".header-logo");
             header.find("span").text(product.name)
-            header.find("img").attr("src", product.logo)
+            if (product.logo !== undefined && product.logo !== null) {
+                header.find("img").attr("src", window.UTIL.getFileFullPath(product.uuid, product.logo, "product"))
+            }
 
             let user = window.UTIL.getUser();
             if (user === null) {
@@ -244,6 +247,9 @@
                     success: (response) => {
                         if (response.success) {
                             product = response.data
+                            if (product.banner !== null) {
+                                $("#imgBanner").attr("src", window.UTIL.getFileFullPath(product.uuid, product.banner, "product"))
+                            }
                             document.title = product.name
                             //初始化header
                             initHeader()

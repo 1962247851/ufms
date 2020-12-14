@@ -31,6 +31,9 @@
                         <img src="" alt="上传成功后渲染" style="max-width: 196px">
                     </div>
                 </div>
+                <button type="button" id="buttonClearAvatar" class="layui-btn layui-btn-primary layui-btn-sm">
+                    <i class="layui-icon layui-icon-delete"></i>
+                </button>
             </div>
             <div class="layui-form-item">
                 <label class="layui-form-label required" for=username>用户名</label>
@@ -57,7 +60,7 @@
                 <label class="layui-form-label required" for="email">邮箱</label>
                 <div class="layui-input-block">
                     <input type="email" name="email" id="email" lay-verify="required" lay-reqtext="邮箱不能为空"
-                           placeholder="请输入邮箱" class="layui-input">
+                           placeholder="请输入邮箱" class="layui-input" disabled>
                 </div>
             </div>
             <div class="layui-form-item layui-form-text">
@@ -136,10 +139,35 @@
                             }
                         }
                     })
-
-
                 }
             });
+
+            $("#buttonClearAvatar").on("click", function () {
+                layer.confirm("确定清空产品用户头像？", {icon: 3, title: "提示"}, function (index) {
+                        user.avatar = null
+                        $.ajax({
+                            type: "POST",
+                            url: window.API.USER.UPDATE,
+                            data: JSON.stringify(user),
+                            contentType: 'application/json;charset=UTF-8',
+                            success(res) {
+                                if (res.success) {
+                                    sessionStorage.setItem("user", JSON.stringify(res.data))
+                                    layer.msg('用户头像更新成功');
+                                    if (user.avatar === undefined || user.avatar === null || user.avatar === '') {
+                                        $('#uploadUserAvatarView').addClass('layui-hide')
+                                        $('#uploadUserAvatarViewTip').removeClass('layui-hide')
+                                    } else {
+                                        $('#uploadUserAvatarView').removeClass('layui-hide').find('img').attr('src', user.avatar).attr('alt', user.avatar);
+                                    }
+                                    layer.close(index)
+                                }
+                            }
+                        })
+
+                    }
+                )
+            })
         }
 
         $(() => {

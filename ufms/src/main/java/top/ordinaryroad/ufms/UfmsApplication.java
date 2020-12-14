@@ -59,10 +59,10 @@ public class UfmsApplication {
             if (userDao.count() == 0) {
                 System.out.println("正在初始化数据库");
 
-                //开发者
+                //开发者，账号密码都是admin
                 userDao.saveAndFlush(
                         new SysUser(
-                                1L, "1", "admin", true, null, "1962247851@qq.com",
+                                1L, "uuid_1", "admin", true, null, "1962247851@qq.com",
                                 null, "$2a$10$4tlsyA.OVQk3zIEv/yHxw.VDeUVmKTQdRXexOHZV7KTgNZ2YehSOO",
                                 null, null, true, true, true,
                                 true, new Date(), null, true)
@@ -75,7 +75,7 @@ public class UfmsApplication {
 
                 //权限
                 permissionDao.saveAndFlush(new SysPermission("PRODUCT_CUD", "增改删产品"));
-                permissionDao.saveAndFlush(new SysPermission("FEEDBACK_CUD", "改删反馈"));
+                permissionDao.saveAndFlush(new SysPermission("FEEDBACK_CUD", "改删查询未隐藏的反馈"));
                 permissionDao.saveAndFlush(new SysPermission("STATISTIC", "产品数据统计"));
                 permissionDao.saveAndFlush(new SysPermission("USER_U", "改用户"));
                 permissionDao.saveAndFlush(new SysPermission("USER_D", "删用户"));
@@ -132,6 +132,7 @@ public class UfmsApplication {
 
                 requestPathPermissionRelationDao.saveAndFlush(new SysRequestPathPermissionRelation(7L, 2L));
                 requestPathPermissionRelationDao.saveAndFlush(new SysRequestPathPermissionRelation(8L, 2L));
+                requestPathPermissionRelationDao.saveAndFlush(new SysRequestPathPermissionRelation(10L, 2L));
 
                 requestPathPermissionRelationDao.saveAndFlush(new SysRequestPathPermissionRelation(15L, 2L));
 

@@ -65,6 +65,8 @@ public enum ResultCode {
     ORIGINAL_FEEDBACK_LOCKED(4015, "主贴被锁定"),
     ORIGINAL_FEEDBACK_NOT_EXIST(4016, "主贴不存在"),
     EMAIL_ALREADY_EXIST(4017, "该邮箱地址已被注册"),
+    ONLY_MAIN_FEEDBACK_CAN_BE_LOCKER(4018, "只有主贴才可以锁定"),
+    ONLY_MAIN_FEEDBACK_CAN_BE_RECOMMENDED(4019, "只有主贴才可以标记为好问题"),
     ;
 
     private Integer code;

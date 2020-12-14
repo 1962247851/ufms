@@ -145,7 +145,7 @@ public class UfmsFeedback extends MyJsonStringObject {
     /**
      * 反馈者用户，开发者下的用户
      */
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.DETACH)
     @JoinColumn(referencedColumnName = "uuid")
     private SysUser user;
 

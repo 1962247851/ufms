@@ -10,17 +10,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
-    <link rel="icon" href="../../images/favicon.ico">
     <link rel="stylesheet" href="../../lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../css/feedback.css" media="all">
     <link rel="stylesheet" href="../../css/public.css" media="all">
     <link rel="stylesheet" href="../../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/magnify/jquery.magnify.min.css" media="all">
+    <link rel="stylesheet" href="../../lib/jq-module/magnify/docs.css" media="all">
     <!--[if lt IE 9]>
     <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
     <script src="https://cdn.statidcfile.org/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
+    <style>
+        .layui-table-cell {
+            height: inherit;
+            vertical-align: middle;
+        }
+    </style>
 </head>
 <body>
-<!--todo 所有反馈-->
 <div class="layuimini-container">
     <div class="layuimini-main">
         <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
@@ -73,6 +80,7 @@
             <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
 
             <script type="text/html" id="currentTableBar">
+                <a class="layui-btn layui-btn-xs" lay-event="detail">详情</a>
                 <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
             </script>
         </div>
@@ -82,6 +90,8 @@
     </div>
 </div>
 <script src="../../lib/layui-v2.5.5/layui.js" charset="utf-8"></script>
+<script src="../../lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
+<script src="../../lib/jq-module/magnify/jquery.magnify.min.js"></script>
 <script src="../../js/lay-config.js" charset="utf-8"></script>
 <script type="module" src="../../js/my-config.js" charset="utf-8"></script>
 <script>
@@ -125,49 +135,98 @@
                                     return window.UTIL.formatTime(d.createdDate)
                                 }
                             },
-                            {field: 'userUuid', width: 275, title: '反馈者唯一标识符', sort: true},
-                            {field: 'userName', width: 140, title: '反馈者用户名', sort: true},
                             {
-                                field: 'userAvatar', width: 200, title: '反馈者头像url', templet: (d) => {
-                                    if (d.userAvatar === null) {
-                                        return "暂无头像";
+                                field: 'user', width: 160, title: '反馈者', sort: true, templet: function (d) {
+                                    let str = '';
+                                    //用户头像
+                                    if (d.user.avatar !== undefined && d.user.avatar !== null) {
+                                        str += '<img data-magnify="gallery" class="layui-nav-img" style="cursor: zoom-in;"  src="' + d.user.avatar + '" data-src="' + d.user.avatar + '" alt="' + d.user.username + '" data-group="' + d.user.username + '"/>'
+                                    }
+                                    //用户在某个产品下的所有反馈
+                                    str += '<a target="_blank" style="color: '
+                                    if (d.isAdmin) {
+                                        str += '#FFB800';
                                     } else {
-                                        return '<img class="layui-nav-img" alt="" src="' + d.userAvatar + '">';
+                                        str += '#009688';
+                                    }
+                                    str += '" href="' + window.UTIL.getFullUserFeedbackPath(window.UTIL.getCurrentProduct().id, d.user.uuid) + '">' + d.user.username + '</a>';
+                                    // str += '<div>' + d.user.uuid + '</div>'
+                                    return str;
+                                }
+                            },
+                            {field: 'content', width: 250, title: '反馈内容', sort: true, edit: "text"},
+                            {
+                                field: 'images', width: 250, title: '反馈附图', templet: (d) => {
+                                    if (d.images === null) {
+                                        return "无"
+                                    } else {
+                                        return "<div style='max-width: 330px;'>" + window.UTIL.generateFlowItemPictures(d.uuid, d.images).replaceAll('lay-src="', 'src="') + "</div>";
                                     }
                                 }
                             },
-                            {field: 'content', width: 250, title: '反馈内容', sort: true},
-                            {field: 'images', width: 250, title: '反馈附图'},
-                            {field: 'likeCount', width: 160, title: '反馈被点赞次数', sort: true},
+                            {field: 'likeCount', width: 150, title: '反馈被点赞次数', sort: true, edit: "text"},
                             {
-                                field: 'isHidden', width: 160, title: '是否隐藏', sort: true, templet: (d) => {
+                                field: 'checkboxs',
+                                width: 120,
+                                title: '<i class="fa fa-arrow-circle-o-up layui-icon-top" style="margin-right: 12px"/>' +
+                                    '<i class="fa fa-lock fa-eye-slash" style="margin-right: 12px"/>' +
+                                    '<i class="fa fa-lock layui-icon-top" style="margin-right: 12px"/>' +
+                                    '<i class="fa fa-star-o"/>',
+                                templet(d) {
+                                    let disabled = d.original !== null ? 'disabled' : '';
+                                    let str = '';
+                                    let checkedHide = d.isHidden ? 'checked' : '';
+                                    str += '<span><input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + checkedHide + ' data-id="' + d.id + '" data-type="hide"><span style="margin-right: 5px"></span></span>'
+
+                                    let checkedTop = d.isTopping ? 'checked' : '';
+                                    str += '<span><input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + disabled + ' ' + checkedTop + ' data-id="' + d.id + '" data-type="top"><span style="margin-right: 5px"></span></span>'
+
+                                    let checkedLock = d.isLocked ? 'checked' : '';
+                                    str += '<span><input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + disabled + ' ' + checkedLock + ' data-id="' + d.id + '" data-type="lock"><span style="margin-right: 5px"></span></span>'
+
+                                    let checkedRecommend = d.isRecommend ? 'checked' : '';
+                                    str += '<span><input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + disabled + ' ' + checkedRecommend + ' data-id="' + d.id + '" data-type="recommend"></span>'
+                                    return str;
+                                }
+                            },
+                            {
+                                field: 'isHidden', width: 105, title: '是否隐藏', sort: true, hide: true, templet: (d) => {
                                     let checked = d.isHidden ? 'checked' : '';
-                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                    return '<input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + checked + ' data-id="' + d.id + '" data-type="' + 'hide' + '">'
                                 }
                             },
                             {
-                                field: 'isTopping', width: 160, title: '是否置顶', sort: true, templet: (d) => {
+                                field: 'isTopping', width: 105, title: '是否置顶', sort: true, hide: true, templet: (d) => {
                                     let checked = d.isTopping ? 'checked' : '';
-                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                    let disabled = d.original !== null ? 'disabled' : '';
+                                    return '<input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + disabled + ' ' + checked + ' data-id="' + d.id + '" data-type="' + 'top' + '">'
                                 }
                             },
                             {
-                                field: 'isLocked', width: 160, title: '是否锁定', sort: true, templet: (d) => {
+                                field: 'isLocked', width: 105, title: '是否锁定', sort: true, hide: true, templet: (d) => {
                                     let checked = d.isLocked ? 'checked' : '';
-                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                    let disabled = d.original !== null ? 'disabled' : '';
+                                    return '<input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + disabled + ' ' + checked + ' data-id="' + d.id + '" data-type="' + 'lock' + '">'
                                 }
                             },
                             {
-                                field: 'isRecommend', width: 160, title: '是否标记为好问题', sort: true, templet: (d) => {
+                                field: 'isRecommend',
+                                width: 160,
+                                title: '是否标记为好问题',
+                                sort: true,
+                                hide: true,
+                                templet: (d) => {
                                     let checked = d.isRecommend ? 'checked' : '';
-                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
+                                    let disabled = d.original !== null ? 'disabled' : '';
+                                    return '<input class="feedback-checkbox" lay-skin="primary" type="checkbox" ' + disabled + ' ' + checked + ' data-id="' + d.id + '" data-type="' + 'recommend' + '">'
                                 }
                             },
                             {
-                                field: 'isAdmin', width: 160, title: '是否为管理员', sort: true, templet: (d) => {
-                                    let checked = d.isAdmin ? 'checked' : '';
-                                    return '<input disabled lay-skin="primary" type="checkbox" ' + checked + '>'
-                                }
+                                field: 'user.uuid',
+                                width: 275,
+                                title: '反馈者唯一标识符',
+                                sort: true,
+                                templet: '<div>{{d.user.uuid}}</div>'
                             },
                             {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
                         ]
@@ -197,7 +256,6 @@
                  */
                 table.on('toolbar(currentTableFilter)', function (obj) {
                     if (obj.event === 'delete') {  // 监听删除操作
-                        //TODO 删除多条数据
                         let checkStatus = table.checkStatus('currentTableId')
                             , data = checkStatus.data;
                         let ids = [];
@@ -210,11 +268,10 @@
                                     title: "注意"
                                 }, function () {
                                     deleteFeedbacks(ids, function (response) {
-                                            console.log(response);
-                                            reloadTable();
-                                            layer.msg("删除成功");
-                                        }, function (reason) {
-                                            layer.alert(reason, {title: '删除失败'})
+                                            if (response.success) {
+                                                reloadTable();
+                                                layer.msg("删除成功");
+                                            }
                                         }
                                     )
                                 });
@@ -222,8 +279,7 @@
                             layer.msg("请先选择数据");
                         }
                     } else if (obj.event === 'LAYTABLE_TIPS') {
-                        //TODO 提示
-                        layer.alert("展示产品下的反馈管理（删查）", {
+                        layer.alert("展示产品下的反馈管理（删改查）", {
                             title: "提示"
                         });
                     }
@@ -236,18 +292,83 @@
                     let data = obj.data;
                     if (obj.event === 'delete') {
                         layer.confirm('确定删除反馈 ' + data.content, function (index) {
-                            //TODO 删除
                             deleteFeedbacks([data.id], function (response) {
-                                console.log(response)
-                                obj.del();
-                                layer.msg("删除成功");
-                                layer.close(index);
-                            }, function (reason) {
-                                layer.alert(reason, {title: '删除失败'})
+                                if (response.success) {
+                                    obj.del();
+                                    layer.msg("删除成功");
+                                    layer.close(index);
+                                }
                             })
                         });
+                    } else if (obj.event === "detail") {
+                        //查看详情，如果有主帖，则查看主贴的
+                        let feedbackId = data.id;
+                        if (data.original !== null) {
+                            feedbackId = data.original.id
+                        }
+                        window.open(window.UTIL.getFullProductFeedbackRepliesPath(window.UTIL.getCurrentProduct().id, feedbackId), "_blank")
                     }
                 });
+                //监听单元格编辑
+                table.on('edit(currentTableFilter)', function (obj) {
+                    let value = obj.value //得到修改后的值
+                        , data = obj.data //得到所在行所有键值
+                        , field = obj.field; //得到字段
+                    if (field === "likeCount") {
+                        if (!/^[0-9]*$/.test(value)) {
+                            layer.msg("输入有误")
+                            return
+                        }
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: window.API.FEEDBACK.UPDATE,
+                        headers: {
+                            "Content-Type": "application/json;charset=UTF-8",
+                        },
+                        data: JSON.stringify(data),
+                        success(res) {
+                            if (res.success) {
+                                layer.msg("修改成功")
+                            }
+                        }
+                    })
+                });
+                $(document).on('click', 'i.layui-icon.layui-icon-ok', function () {
+                    let checkbox = $(this).parent().parent().find("input");
+                    let typeString;
+                    let feedbackId = checkbox.attr("data-id");
+                    let type = checkbox.attr("data-type");
+                    switch (type) {
+                        case "top":
+                            typeString = "置顶"
+                            break
+                        case "hide":
+                            typeString = "隐藏"
+                            break
+                        case "lock":
+                            typeString = "锁定"
+                            break
+                        case "recommend":
+                            typeString = "好问题标记"
+                            break
+                        default:
+                            return true
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: window.API.FEEDBACK.TOGGLE_IS_PROPERTY + feedbackId + "&property=" + type,
+                        success: (res) => {
+                            if (res.success) {
+                                if (res.data) {
+                                    layer.msg(typeString + "成功")
+                                } else {
+                                    layer.msg("取消" + typeString + "成功")
+                                }
+                            }
+                        }
+                    })
+                })
             } else {
                 $("#noProductTip").show()
                 $("#newProduct").on("click", function () {
@@ -260,14 +381,13 @@
             }
         })
 
-        function deleteFeedbacks(ids, success, error) {
+        function deleteFeedbacks(ids, success) {
             $.ajax({
                 type: "DELETE",
                 url: window.API.FEEDBACK.DELETE,
                 headers: {"Content-Type": "application/json;charset=utf-8"},
                 data: JSON.stringify(ids),
-                success: success,
-                error: error
+                success: success
             })
         }
 
