@@ -260,7 +260,7 @@
          * 初始化
          */
         $(() => {
-            if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+            if (window.UTIL.getUser() === null) {
                 $.ajax({
                     url: window.API.USER.GENERATE,
                     success(res) {

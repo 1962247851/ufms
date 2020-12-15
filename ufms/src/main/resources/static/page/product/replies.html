@@ -253,7 +253,7 @@
             let productId = window.UTIL.getUrlParam("pid");
             let originalId = window.UTIL.getUrlParam("oid");
             let user = window.UTIL.getUser();
-            if (user.userAvatar === null) {
+            if (user.userAvatar === undefined || user.userAvatar === null) {
                 $(".avatar-content").text(user.userName[user.userName.length - 1]);
                 $("#avatarDefault").css("display", "")
             } else {
@@ -435,7 +435,7 @@
          * 初始化
          */
         $(() => {
-            if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+            if (window.UTIL.getUser() === null) {
                 $.ajax({
                     url: window.API.USER.GENERATE,
                     success(res) {
@@ -449,7 +449,7 @@
         })
 
         function submit(data, productId, originalId) {
-            if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+            if (window.UTIL.getUser() === null) {
                 $.ajax({
                     url: window.API.USER.GENERATE,
                     success(res) {
@@ -464,7 +464,7 @@
 
         function submitFeedback(data, productId, originalId) {
             let field = data.field;
-            let customUserInfo = window.UTIL.getCustomUserInfo();
+            let userInfo = window.UTIL.getUser();
             field.uuid = uuid
             field.product = {id: productId}
             field.original = {id: originalId}
@@ -472,9 +472,9 @@
                 field.pictures = JSON.stringify(pictures)
             }
             field.user = {
-                uuid: customUserInfo.userUuid,
-                username: customUserInfo.userName,
-                avatar: customUserInfo.userAvatar
+                uuid: userInfo.userUuid,
+                username: userInfo.userName,
+                avatar: userInfo.userAvatar
             }
             if (parentFeedbackId !== null) {
                 field.parent = {
@@ -501,9 +501,9 @@
                                 isReplies: true,
                                 isUserDetail: false,
                                 productId: productId,
-                                userUuid: customUserInfo.userUuid,
-                                userName: customUserInfo.userName,
-                                userAvatar: customUserInfo.userAvatar
+                                userUuid: userInfo.userUuid,
+                                userName: userInfo.userName,
+                                userAvatar: userInfo.userAvatar
                             }).replaceAll('lay-src="', 'src="')
                         )
                         reset()

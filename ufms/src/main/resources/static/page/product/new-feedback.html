@@ -130,14 +130,13 @@
 
         function submitFeedback(data, productId) {
             let field = data.field;
-            let customUserInfo = window.UTIL.getCustomUserInfo();
-            console.log(customUserInfo)
+            let user = window.UTIL.getUser();
             field.uuid = uuid
             field.product = {id: productId}
             field.user = {
-                uuid: customUserInfo.userUuid,
-                username: customUserInfo.userName,
-                avatar: customUserInfo.userAvatar
+                uuid: user.userUuid,
+                username: user.userName,
+                avatar: user.userAvatar
             }
             if (pictures.length !== 0) {
                 field.pictures = JSON.stringify(pictures)
@@ -321,7 +320,7 @@
          * 初始化
          */
         $(() => {
-            if (window.UTIL.getCustomUserInfo() === null && window.UTIL.getSessionStorageUser() === null) {
+            if (window.UTIL.getUser() === null) {
                 $.ajax({
                     url: window.API.USER.GENERATE,
                     success(res) {

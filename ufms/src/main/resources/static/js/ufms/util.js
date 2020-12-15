@@ -605,7 +605,6 @@ export const UTIL = {
     // generateFlowReplyItem: generateFlowReplyItem,
     getFullProductFeedbackPath: getFullProductFeedbackPath,
     // getFullProductFeedbackRepliesPath: getFullProductFeedbackRepliesPath,
-    getCustomUserInfo: getCustomUserInfo,
     getUrlParam: getUrlParam,
     getAllUrlParams: getAllUrlParams,
     getFullNewProductFeedbackPath: getFullNewProductFeedbackPath,

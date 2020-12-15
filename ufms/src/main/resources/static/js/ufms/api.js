@@ -1,5 +1,5 @@
-const API_BASE_HOST = "https://localhost:1116"
-// const API_BASE_HOST = "https://ufms.ordinaryroad.top:1116"
+// const API_BASE_HOST = "https://localhost:1116"
+const API_BASE_HOST = "https://ufms.ordinaryroad.top:1116"
 
 const API_BASE_URL = API_BASE_HOST + "/api"
 

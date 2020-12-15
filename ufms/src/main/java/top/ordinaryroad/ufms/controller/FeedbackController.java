@@ -88,14 +88,18 @@ public class FeedbackController extends BaseUserController implements ForeignKey
             entity.setIsAdmin(false);
             SysUser entityUser = entity.getUser();
             if (entityUser == null || StringUtil.isNullOrEmpty(entityUser.getUuid()) || StringUtil.isNullOrEmpty(entityUser.getUsername())) {
-                entity.setUser(new SysUser(IdUtils.fastSimpleUUID(), new KCNamer().getRandomName(), null));
+                //保存自动生成的user
+                SysUser sysUser = new SysUser(IdUtils.fastSimpleUUID(), new KCNamer().getRandomName(), null);
+                SysUser insert = userService.insert(sysUser);
+                userRoleRelationService.insert(new SysUserRoleRelation(insert.getId(), 2L));
+                entity.setUser(insert);
             } else {
                 //查询user表中是否存在自定义的user
                 SysUser customUser = userService.selectByUuid(entityUser.getUuid());
                 if (customUser == null) {
                     //保存自定义user
-                    SysUser insert = userService.insert(entityUser);
-                    userRoleRelationService.insert(new SysUserRoleRelation(insert.getId(), 2L));
+                    customUser = userService.insert(entityUser);
+                    userRoleRelationService.insert(new SysUserRoleRelation(customUser.getId(), 2L));
                 } else {
                     if (!Objects.equals(customUser.getAvatar(), entityUser.getAvatar())) {
                         customUser.setAvatar(entityUser.getAvatar());
