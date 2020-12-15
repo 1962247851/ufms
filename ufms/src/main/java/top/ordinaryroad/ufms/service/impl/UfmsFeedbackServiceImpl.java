@@ -216,8 +216,8 @@ public class UfmsFeedbackServiceImpl implements UfmsFeedbackService {
      */
     @Override
     public Page<UfmsFeedback> findAllFeedbackReplies(@NotNull Integer offset, @NotNull Long feedbackId, @NotNull Long productId) {
-        //最新的在上面
-        Sort sort = Sort.by("id").descending();
+        //点赞最多或最新的在上面
+        Sort sort = Sort.by("likeCount", "id").descending();
         Pageable pageable = OffsetBasedPageRequest.of(offset, 10, sort);
         return dao.findAll((Specification<UfmsFeedback>) (root, criteriaQuery, criteriaBuilder) -> criteriaBuilder.and(
                 criteriaBuilder.equal(root.<Boolean>get("isHidden"), false),

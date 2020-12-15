@@ -65,7 +65,7 @@ public class UfmsApplication {
                                 1L, "uuid_1", "admin", true, null, "1962247851@qq.com",
                                 null, "$2a$10$4tlsyA.OVQk3zIEv/yHxw.VDeUVmKTQdRXexOHZV7KTgNZ2YehSOO",
                                 null, null, true, true, true,
-                                true, new Date(), null, true)
+                                true, new Date(), null)
                 );
                 //角色
                 roleDao.saveAndFlush(new SysRole("DEVELOPER", "开发者", "可以创建产品等"));

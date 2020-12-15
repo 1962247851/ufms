@@ -115,11 +115,6 @@ public class SysUser extends MyJsonStringObject implements Serializable {
      */
     @LastModifiedDate
     private Date updateTime;
-    /**
-     * 是否为管理员，否则是管理员下的普通用户
-     */
-    @Column(columnDefinition = "bit(1) not null default 0")
-    private Boolean isAdmin = false;
 
     public SysUser(Long id) {
         this.id = id;

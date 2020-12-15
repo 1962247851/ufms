@@ -20,8 +20,13 @@ if (window.UTIL.getSessionStorageUser() === null) {
         && window.location.pathname !== "/page/product/feedback-user.html"
         && window.location.pathname !== "/page/product/replies.html"
     ) {
+        //home.html不需要加#，其他需要登录访问的页面都需要#
+        let temp = ""
+        if (window.location.pathname !== "/home.html") {
+            temp = "/#"
+        }
         //参数中有#需要先编码，不然正则表达式识别不出来
-        window.location.replace("/login.html?redirect=" + escape(window.location.origin + "/#" + window.location.pathname))
+        window.location.replace("/login.html?redirect=" + escape(window.location.origin + temp + window.location.pathname + window.location.hash))
     }
 } else {
     //已经登录则自动跳转到首页的地址

@@ -40,7 +40,7 @@
             <div class="layui-row" style="display: flex">
                 <div class="layui-col-md3 layui-col-xs3" style="align-self: center">当前产品：</div>
                 <div class="layui-col-md6 layui-col-xs6" style="text-align: center;align-self: center">
-                    <img id="selectedProductLogo" title="产品Logo" class="layui-nav-img"/>
+                    <img id="selectedProductLogo" title="产品Logo" class="layui-nav-img" src="../images/favicon.ico"/>
                     <span id="selectedProductName" class="layui-text"></span>
                 </div>
                 <div class="layui-col-md3 layui-col-xs3" style="text-align: end;align-self: center">
@@ -451,7 +451,9 @@
             let currentProduct = window.UTIL.getCurrentProduct()
             if (currentProduct !== null) {
                 $("#selectedProductName").html(currentProduct.name)
-                $("#selectedProductLogo").attr("src", window.UTIL.getFileFullPath(currentProduct.uuid, currentProduct.logo, "product"))
+                if (currentProduct.logo !== undefined && currentProduct.logo !== null) {
+                    $("#selectedProductLogo").attr("src", window.UTIL.getFileFullPath(currentProduct.uuid, currentProduct.logo, "product"))
+                }
             }
         }
 
