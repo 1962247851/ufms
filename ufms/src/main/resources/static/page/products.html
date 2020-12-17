@@ -65,19 +65,18 @@
 <script type="module" src="../js/my-config.js" charset="utf-8"></script>
 <script>
     layui.use(['form', 'table', 'miniTab'], function () {
-        var $ = layui.jquery,
+        let $ = layui.jquery,
             form = layui.form,
             table = layui.table,
             miniTab = layui.miniTab;
 
-        function deleteProducts(ids, success, error) {
+        function deleteProducts(ids, success) {
             $.ajax({
                 type: "DELETE",
                 url: window.API.PRODUCT.DELETE,
                 headers: {"Content-Type": "application/json;charset=utf-8"},
                 data: JSON.stringify(ids),
-                success: success,
-                error: error
+                success: success
             })
 
         }
@@ -168,11 +167,10 @@
                             title: "注意"
                         }, function () {
                             deleteProducts(ids, function (response) {
-                                    console.log(response);
-                                    reloadTable();
-                                    layer.msg("删除成功");
-                                }, function (reason) {
-                                    layer.alert(reason, {title: '删除失败'})
+                                    if (response.success) {
+                                        reloadTable();
+                                        layer.msg("删除成功");
+                                    }
                                 }
                             )
                         });
@@ -197,12 +195,11 @@
             if (obj.event === 'delete') {
                 layer.confirm('确定删除产品 ' + data.name, function (index) {
                     deleteProducts([data.id], function (response) {
-                        console.log(response)
-                        obj.del();
-                        layer.msg("删除成功");
-                        layer.close(index);
-                    }, function (reason) {
-                        layer.alert(reason, {title: '删除失败'})
+                        if (response.success) {
+                            obj.del();
+                            layer.msg("删除成功");
+                            layer.close(index);
+                        }
                     })
                 });
             }

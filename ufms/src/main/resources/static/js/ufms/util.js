@@ -396,7 +396,7 @@ function generateFlowItem(item, properties) {
             str += '" href="' + getFullUserFeedbackPath(productId, item.parent.user.uuid) + '">' + item.parent.user.username + '</a>：'
         }
         //回复详情——文字
-        str += '<span>' + item.content + '</span>'
+        str += '<span class="feedback-content">' + item.content + '</span>'
         //回复详情——配图
         if (item.pictures !== null) {
             str += generateFlowItemPictures(item.uuid, JSON.parse(item.pictures))
@@ -461,7 +461,7 @@ function generateFlowItem(item, properties) {
             }
             str += '" href="' + getFullUserFeedbackPath(productId, item.parent.user.uuid) + '">' + item.parent.user.username + '</a>'
         }
-        str += '：<span>' + item.content + '</span>' +
+        str += '：<span class="feedback-content">' + item.content + '</span>' +
             '</li>'
         return str;
     }

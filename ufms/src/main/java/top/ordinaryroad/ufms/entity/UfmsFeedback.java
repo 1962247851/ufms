@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.netty.util.internal.StringUtil;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -125,7 +127,9 @@ public class UfmsFeedback extends MyJsonStringObject {
     /**
      * 多个反馈对应一个产品
      */
-    @ManyToOne(cascade = {CascadeType.PERSIST})
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+//    @JoinColumn(referencedColumnName = "id", foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (product_id) references ufms_product (id) on delete cascode"))
     @JsonProperty
     private UfmsProduct product;
     /**
@@ -145,7 +149,8 @@ public class UfmsFeedback extends MyJsonStringObject {
     /**
      * 反馈者用户，开发者下的用户
      */
-    @ManyToOne(cascade = CascadeType.DETACH)
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(referencedColumnName = "uuid")
     private SysUser user;
 

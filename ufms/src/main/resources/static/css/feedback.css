@@ -74,3 +74,8 @@
     /*align-self: center;*/
     font-weight: bold;
 }
+
+.feedback-content{
+    word-wrap:break-word;
+    word-break:normal;
+}
